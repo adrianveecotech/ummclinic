@@ -61,6 +61,8 @@ Route::middleware(['auth', 'is_admin'])->group(function () {
 
     // Patient Management
     Route::get('admin/employee', [EmployeeController::class, 'admin_employee_index']);
+    Route::get('admin/employee/new', [EmployeeController::class, 'register_index']);
+    Route::post('admin/employee/store', [EmployeeController::class, 'store_employee_details']);
     Route::get('admin/consultation', [ConsultationController::class, 'admin_consultation_index']);
     Route::get('admin/payment-history', [PaymentController::class, 'payment_history_index']);
 });
@@ -89,6 +91,11 @@ Route::middleware(['auth', 'is_clinic'])->group(function () {
     Route::get('clinic/payment/outstanding-details', [PaymentController::class, 'outstanding_details']);
     Route::post('clinic/payment/billing/{payment_id}', [PaymentController::class, 'billing']);
     Route::post('clinic/multiple_billing/{company_id}', [PaymentController::class, 'multiple_billing']);
+
+    // Patient
+    Route::get('clinic/patient/new', [EmployeeController::class, 'register_index']);
+    Route::post('clinic/patient/store', [EmployeeController::class, 'store_employee_details']);
+
 });
 
 Route::middleware(['auth', 'is_company'])->group(function () {
@@ -109,5 +116,9 @@ Route::middleware(['auth', 'is_company'])->group(function () {
 
     //Payment Management
     Route::get('company/payment', [PaymentController::class, 'company_payment']);
+    Route::post('company/payment/export', [PaymentController::class, 'export_report']);
     Route::get('company/outstanding-details', [PaymentController::class, 'company_consultation_details']);
+
+    //MC
+    Route::get('company/mc', [ConsultationController::class, 'mc_index']);
 });

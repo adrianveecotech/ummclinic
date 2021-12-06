@@ -42,7 +42,13 @@
                 <i class="fa fa-search fa-2x"></i>&nbsp;&nbsp;&nbsp;
                 <p>Search Patient</p>
             </a>
-        </li>        
+        </li>  
+        <li class="c-sidebar-nav-item">
+            <a href="/clinic/patient/new" class="c-sidebar-nav-link">
+                <i class="fa fa-plus fa-2x"></i>&nbsp;&nbsp;&nbsp;
+                <p>New Patient</p>
+            </a>
+        </li>       
         <li class="c-sidebar-nav-item">
             <a href="/clinic/consultation" class="c-sidebar-nav-link">
                 <i class="fa fa-user-md fa-2x"></i>&nbsp;&nbsp;&nbsp;

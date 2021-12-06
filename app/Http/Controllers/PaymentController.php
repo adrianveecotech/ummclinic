@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Clinic;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;  
@@ -13,9 +14,46 @@ class PaymentController extends Controller
 {
     //Admin
     public function payment_history_index(Request $request){
-        if($request->get('search')){
-            $search = $request->get('search');
+        $companies = Company::orderBy('name')->get();
+        if($request->get('group_by') == 'company' && $request->get('month')){
+            $date = $request->month;
+            $date = explode('-',$date);
+            $year = $date[0];
+            $month = $date[1];
+            $payments = DB::table('payments')
+            ->join('companys', 'payments.company_id', 'companys.id')
+            ->select(
+                'companys.name as company_name',
+                DB::raw('sum(payments.amount) as total_amount'),
+                'payments.*'
+            )
+            ->whereMonth('payments.created_at',$month)
+            ->whereYear('payments.created_at',$year)
+            ->where('payments.status','unsettled')
+            ->groupBy('payments.company_id')
+            ->orderBy('payments.created_at', 'desc');
+            $allPayments = $payments->get();
+            $payments = $payments->paginate(10);
 
+            return view('admin.payment_history', compact('payments','allPayments'));
+
+        }else if($request->get('group_by') == 'company'){
+            $payments = DB::table('payments')
+            ->join('companys', 'payments.company_id', 'companys.id')
+            ->select(
+                'companys.name as company_name',
+                DB::raw('sum(payments.amount) as total_amount'),
+                'payments.*'
+            )
+            ->where('payments.status','unsettled')
+            ->groupBy('payments.company_id')
+            ->orderBy('payments.created_at', 'desc');
+            $allPayments = $payments->get();
+            $payments = $payments->paginate(10);
+            return view('admin.payment_history', compact('payments','allPayments'));
+        }
+        else if($request->get('search')){
+            $search = $request->get('search');
             $payments = DB::table('payments')
                 ->join('employees', 'payments.ic', 'employees.ic')
                 ->join('companys', 'payments.company_id', 'companys.id')
@@ -32,17 +70,16 @@ class PaymentController extends Controller
                         ->orwhere('companys.name', 'LIKE', '%'.$search.'%')
                         ->orwhere('clinics.name', 'LIKE', '%'.$search.'%');
                     })
-                ->orderBy('payments.created_at', 'desc')
-                ->paginate(10);
-        
-            return view('admin.payment_history', compact('payments'));
+                ->orderBy('payments.created_at', 'desc');
+                $allPayments = $payments->get();
+                $payments = $payments->paginate(10);
+            return view('admin.payment_history', compact('payments','companies','allPayments'));
         }             
-        
         else if($request->get('status')){
             $start_date = $request->get('start_date');
             $end_date = $request->get('end_date');
             $status = $request->get('status');
-
+            $company_id = $request->get('company');
             $payments = DB::table('payments')
                 ->join('employees', 'payments.ic', 'employees.ic')
                 ->join('companys', 'payments.company_id', 'companys.id')
@@ -62,18 +99,21 @@ class PaymentController extends Controller
             if($status){
                 $payments = $payments->where('payments.status', 'LIKE', $status);
             }    
-
+            if($company_id){
+                $payments = $payments->where('companys.id', '=', $company_id);
+            }
             $payments = $payments
-                ->orderBy('payments.created_at', 'desc')
-                ->paginate(10);
+                ->orderBy('payments.created_at', 'desc');
+            $allPayments = $payments->get();
+            $payments = $payments->paginate(10);
 
-            return view('admin.payment_history', compact('payments'));
+            return view('admin.payment_history', compact('payments','companies','allPayments'));
         }
 
         else if($request->get('start_date') && $request->get('end_date')){
             $start_date = $request->get('start_date');
             $end_date = $request->get('end_date');
-
+            $company_id = $request->get('company');
             $payments = DB::table('payments')
                 ->join('employees', 'payments.ic', 'employees.ic')
                 ->join('companys', 'payments.company_id', 'companys.id')
@@ -85,13 +125,35 @@ class PaymentController extends Controller
                     'payments.*'
                 )
                 ->whereDate('payments.created_at', '>=', $start_date)
-                ->whereDate('payments.created_at', '<=', $end_date)
-                ->orderBy('payments.created_at', 'desc')
-                ->paginate(10);
+                ->whereDate('payments.created_at', '<=', $end_date);
+            if($company_id){
+                $payments = $payments->where('companys.id', '=', $company_id);
+            }    
+            $payments = $payments->orderBy('payments.created_at', 'desc');
+            $allPayments = $payments->get();
+            $payments = $payments->paginate(10);
         
-            return view('admin.payment_history', compact('payments'));
+            return view('admin.payment_history', compact('payments','companies','allPayments'));
         }
-
+        else if($request->get('company')){
+            $company_id = $request->get('company');
+            $payments = DB::table('payments')
+                ->join('employees', 'payments.ic', 'employees.ic')
+                ->join('companys', 'payments.company_id', 'companys.id')
+                ->join('clinics', 'payments.clinic_id', 'clinics.id')
+                ->select(
+                    'employees.name as employee_name',
+                    'companys.name as company_name',
+                    'clinics.name as clinic_name',
+                    'payments.*'
+                )
+                ->where('companys.id', '=', $company_id)
+                ->orderBy('payments.created_at', 'desc');
+                $allPayments = $payments; 
+                $payments = $payments->paginate(10);
+                    
+            return view('admin.payment_history', compact('payments','companies','allPayments'));
+        }
         else{
             $payments = DB::table('payments')
                 ->join('employees', 'payments.ic', 'employees.ic')
@@ -103,10 +165,10 @@ class PaymentController extends Controller
                     'clinics.name as clinic_name',
                     'payments.*'
                 )
-                ->orderBy('payments.created_at', 'desc')
-                ->paginate(10);
-        
-            return view('admin.payment_history', compact('payments'));
+                ->orderBy('payments.created_at', 'desc');
+            $allPayments = $payments->get();
+            $payments = $payments->paginate(5);
+            return view('admin.payment_history', compact('payments','companies','allPayments'));
         }
     }
     // Clinic
@@ -452,7 +514,69 @@ class PaymentController extends Controller
     }
 
     public function company_payment(Request $request){
-        if($request->get('search')){
+        $clinics = Clinic::get();
+        if($request->get('clinic') && $request->get('month'))
+        {
+            $clinic = $request->get('clinic');
+            $yearMonth = $request->get('month');
+            $date = explode('-',$yearMonth);
+            $year = $date[0];
+            $month = $date[1];
+
+            $outstandings_amount = DB::table('payments')
+                ->join('clinics', 'payments.clinic_id', 'clinics.id')
+                ->select(
+                    'clinics.name as clinic_name',
+                    'clinics.id as clinic_id',
+                    DB::raw('sum(payments.amount) as total_outstanding')
+                )
+                ->where('payments.company_id', Auth::user()->company_id)
+                ->where('payments.status', 'unsettled')
+                ->groupBy('clinics.id')
+                ->where('clinics.id', '=', $clinic)
+                ->whereMonth('payments.created_at',$month)
+                ->whereYear('payments.created_at',$year)
+                ->get();
+        }
+        else if($request->get('clinic'))
+        {
+            $clinic = $request->get('clinic');
+
+            $outstandings_amount = DB::table('payments')
+                ->join('clinics', 'payments.clinic_id', 'clinics.id')
+                ->select(
+                    'clinics.name as clinic_name',
+                    'clinics.id as clinic_id',
+                    DB::raw('sum(payments.amount) as total_outstanding')
+                )
+                ->where('payments.company_id', Auth::user()->company_id)
+                ->where('payments.status', 'unsettled')
+                ->groupBy('clinics.id')
+                ->where('clinics.id', '=', $clinic)
+                ->get();
+        }
+        else if($request->get('month'))
+        {
+            $yearMonth = $request->get('month');
+            $date = explode('-',$yearMonth);
+            $year = $date[0];
+            $month = $date[1];
+
+            $outstandings_amount = DB::table('payments')
+                ->join('clinics', 'payments.clinic_id', 'clinics.id')
+                ->select(
+                    'clinics.name as clinic_name',
+                    'clinics.id as clinic_id',
+                    DB::raw('sum(payments.amount) as total_outstanding')
+                )
+                ->where('payments.company_id', Auth::user()->company_id)
+                ->where('payments.status', 'unsettled')
+                ->groupBy('clinics.id')
+                ->whereMonth('payments.created_at',$month)
+                ->whereYear('payments.created_at',$year)
+                ->get();
+        }
+        else if($request->get('search')){
             $search = $request->get('search');
 
             $outstandings_amount = DB::table('payments')
@@ -464,11 +588,9 @@ class PaymentController extends Controller
                 )
                 ->where('payments.company_id', Auth::user()->company_id)
                 ->where('payments.status', 'unsettled')
-                ->groupBy('clinics.name')
+                ->groupBy('clinics.id')
                 ->where('clinics.name', 'LIKE', '%'.$search.'%')
                 ->get();
-
-            return view('company.payment', compact('outstandings_amount'));
         }
         else{
             $outstandings_amount = DB::table('payments')
@@ -481,14 +603,45 @@ class PaymentController extends Controller
                 )
                 ->where('payments.company_id', Auth::user()->company_id)
                 ->where('payments.status', 'unsettled')
-                ->groupBy('clinics.name')
+                ->groupBy('clinics.id')
                 ->get();
-
-            return view('company.payment', compact('outstandings_amount'));
         }
+        return view('company.payment', compact('outstandings_amount','clinics'));
     }
 
     public function company_consultation_details(){
         return view('company.outstanding_details');
+    }
+
+    public function export_report(Request $request){
+        $outstandings_amount = DB::table('payments')
+                ->join('clinics', 'payments.clinic_id', 'clinics.id')
+                ->join('employees','employees.ic','payments.ic')
+                ->select(
+                    'clinics.name as clinic_name',
+                    'employees.ic as employee_ic',
+                    'employees.name as employee_name',
+                    'payments.created_at as created_at',
+                    'payments.amount as amount' 
+                )
+                ->where('payments.company_id', Auth::user()->company_id)
+                ->where('payments.status', 'unsettled');
+
+        if($request->clinic){
+            $clinic = $request->clinic;
+            $outstandings_amount = $outstandings_amount->where('clinics.id', '=', $clinic);
+        }
+        if($request->yearmonth){
+            $clinic = $request->clinic;
+            $yearmonth = $request->yearmonth;
+            $date = explode("-",$yearmonth);
+            $year = $date[0];
+            $month = $date[1];
+            $outstandings_amount = $outstandings_amount->whereMonth('payments.created_at',$month)->whereYear('payments.created_at',$year);
+        }
+        $outstandings_amount = $outstandings_amount->get();
+        return array($outstandings_amount);
+
+        
     }
 }

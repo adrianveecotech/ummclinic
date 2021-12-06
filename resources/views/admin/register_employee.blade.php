@@ -1,4 +1,4 @@
-@extends('layouts.company')
+@extends('layouts.admin')
 
 @section('pageTitle', 'Employee :: Register')
 
@@ -11,13 +11,17 @@
 @section('content')
 <div class="container-fluid">
     <div class="card">
-        <div class="card-body">
-            <form action="{{ url('/company/employee/store') }}" method="POST">
+        <div class="card-body">  
+            <form action="{{ url('/admin/employee/store') }}" method="POST">
                 @csrf
                 <div class="form-group">
                     <label for="contact">Company Name</label>
-                    <input type="hidden" class="form-control" name="company_id" value="{{ Auth::user()->company_id }}" required>
-                    <input type="text" class="form-control" name="company_name" value="{{ $company_name->name }}" disabled>
+                    <select name="company" class="custom-select">
+                    <option selected></option>
+                    @foreach($companies as $company)
+                    <option value="{{$company->id}}">{{$company->name}}</option>
+                    @endforeach
+                    </select>
                 </div>
                     <div class="form-group">
                         <label for="name">Employee Name</label>

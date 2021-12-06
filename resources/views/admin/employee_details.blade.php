@@ -37,6 +37,7 @@
           </form>
         </div>
         <div class="float-right mb-3">
+          <a href="{{ url('admin/employee/new') }}" class="btn btn-info text-white"><i class="fa fa-plus"></i> Register Employee</a>
           <button type="button" class="btn btn-info text-white" data-toggle="modal" data-target="#filter_employee_modal"><i class="fa fa-filter" aria-hidden="true"></i></button>
           <div class="modal fade" id="filter_employee_modal" tabindex="-1" role="dialog" aria-labelledby="employeeFilterModal" aria-hidden="true">
             <div class="modal-dialog" role="document">
@@ -71,6 +72,8 @@
               <th scope="col" style="width:5%" class="text-center">#</th>
               <th scope="col">Employee Name</th>
               <th scope="col" style="width: 15%">Company</th>
+              <th scope="col" style="width: 10%">Monthly Limit Exceeded</th>
+              <th scope="col" style="width: 10%">Yearly Limit Exceeded</th>
               <th scope="col" style="width:10%" class="text-center">Status</th>
               <th scope="col" style="width:15%" class="text-center">Action</th>
             </tr>
@@ -81,6 +84,14 @@
                   <th scope="row" class="text-center">{{ $index+1 }}</th>
                   <td>{{ $employee->name }}</td>
                   <td>{{ $employee->company_name }}</td>
+                  <td class="text-center">
+                    @if($employee->monthly_limit_exceeded == 'false') <span class="badge badge-success">Not Exceeded</span> @endif
+                    @if($employee->monthly_limit_exceeded == 'true') <span class="badge badge-danger">Exceeded</span> @endif
+                  </td>
+                  <td class="text-center">
+                    @if($employee->yearly_limit_exceeded == 'false') <span class="badge badge-success">Not Exceeded</span> @endif
+                    @if($employee->yearly_limit_exceeded == 'true') <span class="badge badge-danger">Exceeded</span> @endif
+                  </td>
                   <td class="text-center">
                     @if($employee->status == 'active') <span class="badge badge-success">Active</span> @endif
                     @if($employee->status == 'inactive') <span class="badge badge-danger">Inactive</span> @endif

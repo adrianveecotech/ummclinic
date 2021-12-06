@@ -41,6 +41,12 @@
                 <p>Payment</p>
             </a>
         </li>
+        <li class="c-sidebar-nav-item">
+            <a href="/company/mc" class="c-sidebar-nav-link">
+                <i class="fa fa-file fa-2x"></i>&nbsp;&nbsp;&nbsp;
+                <p>MC</p>
+            </a>
+        </li>
     </ul>
 
 </div>

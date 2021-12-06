@@ -67,6 +67,8 @@
               <th scope="col">Employee Name</th>
               <th scope="col" style="width: 15%">IC</th>
               <th scope="col" style="width: 15%">Employee ID</th>
+              <th scope="col" style="width: 15%">Monthly Limit Exceeded</th>
+              <th scope="col" style="width: 15%">Yearly Limit Exceeded</th>
               <th scope="col" style="width:10%" class="text-center">Status</th>
               <th scope="col" style="width:15%" class="text-center">Action</th>
             </tr>
@@ -78,6 +80,14 @@
                   <td>{{ $employee->name }}</td>
                   <td>{{ $employee->ic }}</td>
                   <td>{{ $employee->company_employee_id }}</td>
+                  <td class="text-center">
+                    @if($employee->monthly_limit_exceeded == 'false') <span class="badge badge-success">Not Exceeded</span> @endif
+                    @if($employee->monthly_limit_exceeded == 'true') <span class="badge badge-danger">Exceeded</span> @endif
+                  </td>
+                  <td class="text-center">
+                    @if($employee->yearly_limit_exceeded == 'false') <span class="badge badge-success">Not Exceeded</span> @endif
+                    @if($employee->yearly_limit_exceeded == 'true') <span class="badge badge-danger">Exceeded</span> @endif
+                  </td>
                   <td class="text-center">
                     @if($employee->status == 'active') <span class="badge badge-success">Active</span> @endif
                     @if($employee->status == 'inactive') <span class="badge badge-danger">Inactive</span> @endif
@@ -131,6 +141,26 @@
                                         <option value="active" @if($employee->status == 'active') selected @endif>Active</option>
                                         <option value="inactive" @if($employee->status == 'inactive') selected @endif>Inactive</option>
                                     </select>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="form-group col-md-6">
+                                    <label for="date_joined">Date of Joined</label>
+                                    <input type="date" class="form-control" name="date_joined" value="{{ $employee->date_joined }}"></input>
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label for="department">Department</label>
+                                    <input type="text" class="form-control" name="department" value="{{ $employee->department }}"></input>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="form-group col-md-6">
+                                    <label for="monthly_limit">Monthly limit</label>
+                                    <input type="text" class="form-control" name="monthly_limit" value="{{ $employee->monthly_limit }}"></input>
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label for="yearly_limit">Yearly limit</label>
+                                    <input type="text" class="form-control" name="yearly_limit" value="{{ $employee->yearly_limit }}"></input>
                                 </div>
                             </div>
                           </div>

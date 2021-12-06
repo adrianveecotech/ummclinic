@@ -52,7 +52,7 @@
               <th scope="col" style="width: 15%">IC</th>
               <th scope="col" style="width: 10%">Date</th>
               <th scope="col" style="width: 10%">Amount</th>
-              <th scope="col" style="width:10%" class="text-center">Status</th>
+              <!-- <th scope="col" style="width:10%" class="text-center">Status</th> -->
               <th scope="col" style="width:15%" class="text-center">Action</th>
             </tr>
           </thead>
@@ -64,10 +64,10 @@
                   <td>{{ $payment->ic }}</td>
                   <td>{{ \Carbon\Carbon::parse($payment->created_at)->format('d-m-Y') }}</td>
                   <td>RM {{ number_format((float)($payment->amount), 2) }}</td>
-                  <td class="text-center">
+                  <!-- <td class="text-center">
                     @if($payment->status == 'settled') <span class="badge badge-success">Settled</span> @endif
                     @if($payment->status == 'unsettled') <span class="badge badge-danger">Unsettled</span> @endif
-                  </td>
+                  </td> -->
                   <td class="text-center">
                       <button class="btn btn-sm btn-info" data-toggle="modal" data-target="#view_consultation_details_modal{{ $index }}">View</button>  
                       <button class="btn btn-sm btn-success @if($payment->status == 'settled') d-none @endif" data-toggle="modal" data-target="#billing_modal{{ $index }}">Billing</button>  

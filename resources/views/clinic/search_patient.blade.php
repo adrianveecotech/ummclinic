@@ -64,6 +64,18 @@ b{
           </div>
           <div class="card">
             <div class="card-body">
+            <div class="row mb-2">
+              @if($monthly_limit_exceeded == 'True')
+              <div class="col-lg-12">
+                  <div class="alert alert-danger" role="alert"> This employee has exceeded the monthly limit. </div>
+              </div>
+              @endif
+              @if($yearly_limit_exceeded == 'True')
+              <div class="col-lg-12">
+                  <div class="alert alert-danger" role="alert"> This employee has exceeded the yearly limit. </div>
+              </div>
+            </div>
+              @endif
               <h2 class="card-title">Patient Details</h2>
               <div class="row">
                 <div class="col">
@@ -86,6 +98,16 @@ b{
                 <div class="col">
                   <p><strong>Employee ID :</strong><br> {{ $employee->company_employee_id }}</p>
                 </div>
+              </div>
+              <div class="row mt-3">
+                <div class="col">
+                  <p><strong>Total MC taken :</strong><br> {{ $number_of_mc }}</p>
+                </div> 
+                <div class="col">
+                  <p><strong>Status :</strong><br> {{ ucfirst($employee->status) }}</p>
+                </div>  
+                <div class="col">
+                </div>                
               </div>
             </div>
           </div>

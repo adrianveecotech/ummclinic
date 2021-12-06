@@ -14,6 +14,7 @@ class EmployeeController extends Controller
 {
     // Admin
     public function admin_employee_index(Request $request){
+        $companies = Company::orderBy('name')->get();
         if($request->get('search')){
             $search = $request->get('search');
 
@@ -35,7 +36,6 @@ class EmployeeController extends Controller
 
             $consultations = Consultation::all();
 
-            return view('admin.employee_details', compact('employees', 'consultations'));
         }        
         
         if($request->get('status')){
@@ -53,7 +53,6 @@ class EmployeeController extends Controller
 
             $consultations = Consultation::all();
 
-            return view('admin.employee_details', compact('employees', 'consultations'));
         }
         else{
             $employees = DB::table('employees')
@@ -67,8 +66,21 @@ class EmployeeController extends Controller
 
             $consultations = Consultation::all();
 
-            return view('admin.employee_details', compact('employees', 'consultations'));
         }
+        foreach ($employees as $key => $employee) {
+            $monthly_spent = Consultation::where('ic',$employee->ic)->whereMonth('created_at',date('m') )->sum('price');
+            if($monthly_spent > $employee->monthly_limit)
+                $employees[$key]->monthly_limit_exceeded = 'true';
+            else
+                $employees[$key]->monthly_limit_exceeded = 'false';
+
+            $yearly_spent = Consultation::where('ic',$employee->ic)->whereYear('created_at',date('Y') )->sum('price');
+            if($yearly_spent > $employee->yearly_limit)
+                $employees[$key]->yearly_limit_exceeded = 'true';
+            else
+                $employees[$key]->yearly_limit_exceeded = 'false';
+        }   
+        return view('admin.employee_details', compact('employees', 'consultations','companies'));
     }
 
     // Company
@@ -82,8 +94,6 @@ class EmployeeController extends Controller
                 ->orwhere('ic', 'LIKE', $search)
                 ->orwhere('company_employee_id', 'LIKE', $search)
                 ->paginate(10);
-
-            return view('company.employee', compact('employees'));
         }
         else if($request->get('status')){
             $status = $request->get('status');
@@ -92,28 +102,54 @@ class EmployeeController extends Controller
                 ->where('company_id', Auth::user()->company_id)
                 ->where('status', 'LIKE', $status)
                 ->paginate(10);
-
-            return view('company.employee', compact('employees'));
         }
         else{
             $employees = Employee::where('company_id', Auth::user()->company_id)
                 ->paginate(10);
-
-            return view('company.employee', compact('employees'));
         }
+        foreach ($employees as $key => $employee) {
+            $monthly_spent = Consultation::where('ic',$employee->ic)->whereMonth('created_at',date('m') )->sum('price');
+            if($monthly_spent > $employee->monthly_limit)
+                $employees[$key]->monthly_limit_exceeded = 'true';
+            else
+                $employees[$key]->monthly_limit_exceeded = 'false';
+
+            $yearly_spent = Consultation::where('ic',$employee->ic)->whereYear('created_at',date('Y') )->sum('price');
+            if($yearly_spent > $employee->yearly_limit)
+                $employees[$key]->yearly_limit_exceeded = 'true';
+            else
+                $employees[$key]->yearly_limit_exceeded = 'false';
+        }   
+        return view('company.employee', compact('employees'));
     }
 
     public function register_index(){
-        $company_id = Auth::user()->company_id;
+        if(Auth::user()->type == 'Admin')
+        {
+            $companies = Company::orderBy('name')->get();   
+            return view('admin.register_employee', compact('companies'));
+        }
+        else if(Auth::user()->type == 'company')
+        {
+            $company_id = Auth::user()->company_id;
 
-        $company_name = Company::where('id', $company_id)
-                ->select('name')
-                ->first();
-
-        return view('company.register_employee', compact('company_name'));
+            $company_name = Company::where('id', $company_id)
+                    ->select('name')
+                    ->first();
+            return view('company.register_employee', compact('company_name'));
+        }else if(Auth::user()->type == 'clinic')
+        {
+            $companies = Company::orderBy('name')->get();   
+            return view('clinic.register_employee', compact('companies'));
+        }
     }
 
     public function store_employee_details(Request $request){
+        if(Auth::user()->type == 'Admin' || Auth::user()->type == 'clinic'){
+            $request->validate([
+                'company' => 'required',
+            ]);
+        }
         $request->validate([
             'name' => 'required|max:255',
             'ic' => 'required|unique:employees',
@@ -121,6 +157,8 @@ class EmployeeController extends Controller
             'contact' => 'required|max:255',
             'dob' => 'required',
             'company_employee_id' => 'required|unique:employees',
+            'monthly_limit' => 'required',
+            'yearly_limit' => 'required'
         ]);
 
         $employees = new Employee();
@@ -131,10 +169,17 @@ class EmployeeController extends Controller
         $employees->contact = $request->input('contact');
         $employees->dob = $request->input('dob');
         $employees->company_employee_id = $request->input('company_employee_id');
-        $employees->company_id = $request->input('company_id');
-
+        $employees->monthly_limit = $request->input('monthly_limit');
+        $employees->yearly_limit = $request->input('yearly_limit');
+        if(Auth::user()->type == 'Admin' || Auth::user()->type == 'clinic'){
+            $employees->company_id = $request->company;
+        }
+        else if(Auth::user()->type == 'company'){
+            $employees->company_id = $request->input('company_id');
+        }
+        $employees->date_joined = $request->input('date_joined');
+        $employees->department = $request->input('department');
         $employees->save();
-
         return back()->with('message', 'Employee created successfully.');
     }
 
@@ -147,6 +192,10 @@ class EmployeeController extends Controller
         $employees->contact = $request->input('contact');
         $employees->dob = $request->input('dob');
         $employees->status = $request->input('status');
+        $employees->monthly_limit = $request->input('monthly_limit');
+        $employees->yearly_limit = $request->input('yearly_limit');
+        $employees->date_joined = $request->input('date_joined');
+        $employees->department = $request->input('department');
 
         $employees->save();
 

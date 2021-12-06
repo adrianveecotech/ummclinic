@@ -36,6 +36,7 @@
             </form>
           </div>
           <div class="float-right mb-3">
+            <a href="{{url('admin/consultation')}}"><button type="button" class="btn btn-danger text-white"><i class="fa fa-close" aria-hidden="true"></i></button></a>
             <button type="button" class="btn btn-info text-white" data-toggle="modal" data-target="#filter_employee_modal"><i class="fa fa-filter" aria-hidden="true"></i></button>
             <div class="modal fade" id="filter_employee_modal" tabindex="-1" role="dialog" aria-labelledby="employeeFilterModal" aria-hidden="true">
               <div class="modal-dialog" role="document">
@@ -63,6 +64,13 @@
                             <option selected></option>
                             <option value="settled">Settled</option>
                             <option value="unsettled">Unsettled</option>
+                          </select>
+                          <label for="clinic">Clinic</label>
+                          <select name="clinic" class="custom-select">
+                            <option selected></option>
+                            @foreach($clinics as $clinic)
+                            <option value="{{$clinic->id}}">{{$clinic->name}}</option>
+                            @endforeach
                           </select>
                         </div>
                         <div class="modal-footer">
@@ -131,7 +139,13 @@
                                 @if($consultation->payment_status == 'settled') <span class="badge badge-success">Settled</span>@endif
                                 @if($consultation->payment_status == 'unsettled') <span class="badge badge-danger">Unsettled</span>@endif
                             </td>
-                          </tr>                            
+                          </tr>  
+                          <tr>
+                            <th class="table-active w-25">Clinic Admin Name</th>
+                            <td class="w-25">{{ $consultation->clinic_admin_name }}</td>                            
+                            <th class="table-active w-25">Created At</th>
+                            <td class="w-25">{{ $consultation->created_at }}</td>
+                          </tr>                              
                         </tbody>
                       </table>
                       <div class="card" id="amount_card">

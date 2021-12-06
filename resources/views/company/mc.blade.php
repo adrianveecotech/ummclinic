@@ -1,10 +1,10 @@
 @extends('layouts.company')
 
-@section('pageTitle', 'Company :: Payment')
+@section('pageTitle', 'Company :: MC')
 
 @section('sub_header')
 <li class="breadcrumb-item"><a href="/">Dashboard</a></li>
-<li class="breadcrumb-item active">Payment</li>
+<li class="breadcrumb-item active">MC</li>
 @endsection
 
 @section('styles')
@@ -19,20 +19,7 @@
 <div class="container-fluid">
     <div class="card">
         <div class="card-body">
-              <form action="{{ url('company/payment') }}" method="GET" class="mb-3 row">
-              <div class="col-2">
-                    <label for="address">Clinic</label>
-                    <select class="form-select" name="clinic" id="clinic">
-                      <option value="">Select a clinic</option>
-                      @foreach($clinics as $clinic)
-                        @if(Request::get('clinic') && Request::get('clinic') == $clinic->id )
-                        <option value="{{$clinic->id}}" selected>{{$clinic->name}}</option>
-                        @else
-                        <option value="{{$clinic->id}}" >{{$clinic->name}}</option>
-                        @endif
-                      @endforeach
-                    </select>
-              </div>
+              <form action="{{ url('company/mc') }}" method="GET" class="mb-3 row">
               <div class="col-2">
                 <label for="start">Month:</label>
                 @if(Request::get('month'))
@@ -44,28 +31,25 @@
               <div class="col-1 mt-auto mb-1">
                 <button type="submit" class="btn btn-success" id="btnFilter">Filter</a>
               </div>
-              <div class="col-1 ml-auto mt-auto mb-1">
-                <button type="button" class="btn btn-info" id="btnExport" onclick="exportReport();">Export</a>
-              </div>
               </form>
               <table class="table table-bordered table-hover bg-white" id="consultation_table">
                 <thead>
                   <tr>
-                    <th scope="col" style="width:5%" class="text-center">#</th>
+                    <th scope="col">Employee Name</th>
+                    <th scope="col">Employee IC</th>
                     <th scope="col">Clinic Name</th>
-                    <th scope="col" style="width: 20%">Total Outstanding Amount</th>
-                    <th scope="col" style="width:10%" class="text-center">Action</th>
+                    <th scope="col">MC Start Date</th>
+                    <th scope="col">MC End Date</th>
                   </tr>
                 </thead>
                 <tbody>
-                  @foreach($outstandings_amount as $index => $outstanding_amount)
+                  @foreach($consultations as $consultation)
                     <tr>
-                      <th scope="row" class="text-center">{{ $index+1 }}</th>
-                      <td>{{ $outstanding_amount->clinic_name }}</td>
-                      <td>RM {{ number_format((float)($outstanding_amount->total_outstanding), 2) }}</td>
-                      <td class="text-center">
-                          <a class="btn btn-sm btn-info" href="/company/outstanding-details?clinic={{ $outstanding_amount->clinic_id }}">View</a>  
-                      </td>
+                      <td>{{$consultation->employee_name}}</td>
+                      <td>{{$consultation->employee_ic}}</td>
+                      <td>{{$consultation->clinic_name}}</td>
+                      <td>{{$consultation->mc_startdate}}</td>
+                      <td>{{$consultation->mc_enddate}}</td>
                     </tr>                 
                   @endforeach
                 </tbody>
