@@ -175,7 +175,7 @@
                                 </tr> 
                                 <tr>
                                 <th class="table-active w-25">Clinic Admin Name</th>
-                                <td class="w-25">{{ $consultation->clinic_admin_name }}</td>                            
+                                <td class="w-25">{{ $consultation->clinic_admin }}</td>                            
                                 <th class="table-active w-25">Created At</th>
                                 <td class="w-25">{{ $consultation->created_at }}</td>
                                 </tr>                              

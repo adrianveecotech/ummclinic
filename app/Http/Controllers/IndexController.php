@@ -32,14 +32,12 @@ class IndexController extends Controller
             ->join('clinics', 'consultations.clinic_id', 'clinics.id')
             ->join('doctors', 'consultations.doctor_id', 'doctors.id')
             ->join('payments', 'consultations.id', 'payments.consultation_id')
-            ->join('users', 'consultations.clinic_admin_id', 'users.id')
             ->select(
                 'employees.name as employee_name',
                 'clinics.name as clinic_name',
                 'consultations.*',
                 'doctors.name as doctor_name',
                 'payments.status as payment_status',
-                'users.name as clinic_admin_name'
                 )
             ->orderBy('consultations.created_at', 'desc')
             ->paginate(5);
