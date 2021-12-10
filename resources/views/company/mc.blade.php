@@ -38,22 +38,63 @@
                     <th scope="col">Employee Name</th>
                     <th scope="col">Employee IC</th>
                     <th scope="col">Clinic Name</th>
-                    <th scope="col">MC Start Date</th>
-                    <th scope="col">MC End Date</th>
+                    <th scope="col">Total MC Taken</th>
+                    <th scope="col">Action</th>
                   </tr>
                 </thead>
                 <tbody>
-                  @foreach($consultations as $consultation)
+                  @foreach($consultations as $index => $consultation)
                     <tr>
                       <td>{{$consultation->employee_name}}</td>
                       <td>{{$consultation->employee_ic}}</td>
                       <td>{{$consultation->clinic_name}}</td>
-                      <td>{{$consultation->mc_startdate}}</td>
-                      <td>{{$consultation->mc_enddate}}</td>
+                      <td>{{$consultation->total_mc}}</td>
+                      <td class="text-center">
+                      <button class="btn btn-sm btn-info" data-toggle="modal" data-target="#view_mc_modal{{ $index }}">View</button>  
+                    </td>
                     </tr>                 
                   @endforeach
                 </tbody>
             </table>
+            {{ $consultations->appends(request()->input())->links() }}
+            @foreach($consultations as $index => $consultation)
+        <div class="modal fade" id="view_mc_modal{{ $index }}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <strong>MC Details</strong>
+                    </div>
+                    <div class="modal-body">
+                    <table class="table table-bordered table-hover bg-white" id="consultation_table">
+                    <thead>
+                      <tr>
+                        <th scope="col">MC Duration</th>
+                        <th scope="col">Clinic Name</th>
+                        <th scope="col">Diagnosis</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @foreach($consultation_details as $consultation_detail)
+                      @if($consultation_detail->ic == $consultation->ic)
+                        <tr>
+                          <td>{{$consultation_detail->mc_startdate}} - {{$consultation_detail->mc_enddate}}</td>
+                          <td>{{$consultation_detail->clinic_name}}</td>
+                          <td>{{$consultation_detail->diagnosis}}</td>
+                        </tr>     
+                      @endif            
+                      @endforeach
+                    </tbody>
+                    </table>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-info" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+          </div>   
+        @endforeach
+        </div>
+      </div>
         </div>
     </div>
 </div>

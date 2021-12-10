@@ -8,33 +8,50 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use App\Models\Company;
 use App\Models\User;
+use App\Models\Payment;
 
 class CompanyController extends Controller
 {
     public function index(Request $request){
+        $payments = DB::table('payments')
+        ->join('companys', 'payments.company_id', 'companys.id')
+        ->select(
+            'companys.id as company_id',
+            DB::raw('sum(payments.amount) as total_amount'),
+            DB::raw('count(payments.amount) as total_count'),
+        )
+        ->where('payments.status','unsettled')
+        ->groupBy('payments.company_id')
+        ->orderBy('payments.created_at', 'desc')->get();
         if($request->get('search')){
             $search = $request->get('search');
 
             $companies = Company::where('name', 'LIKE', '%'.$search.'%')
                 ->paginate(10);
-
-            return view('admin.company', compact('companies'));
         }        
-        
         else if($request->get('status')){
             $status = $request->get('status');
 
             $companies = Company::where('status', 'LIKE', $status)
                 ->paginate(10);
-
-            return view('admin.company', compact('companies'));
         }
-
         else{
             $companies = Company::paginate(10);
-
-            return view('admin.company', compact('companies'));
         }
+        $count = 0;
+        $amount = 0;
+        foreach($companies as $index => $company){
+            foreach ($payments as $index1 => $payment) {
+                if($payment->company_id == $company->id){
+                    $count = $payment->total_count;
+                    $amount = $payment->total_amount;
+                    break;
+                }
+            }
+            $companies[$index]->total_count = $count;
+            $companies[$index]->total_amount = $amount;
+        }
+        return view('admin.company', compact('companies'));
     }
 
     public function store_company_details(Request $request){

@@ -64,7 +64,7 @@
                       <td>{{ $outstanding_amount->clinic_name }}</td>
                       <td>RM {{ number_format((float)($outstanding_amount->total_outstanding), 2) }}</td>
                       <td class="text-center">
-                          <a class="btn btn-sm btn-info" href="/company/outstanding-details?clinic={{ $outstanding_amount->clinic_id }}">View</a>  
+                          <a class="btn btn-sm btn-info" href="/company/outstanding-details?clinic={{ $outstanding_amount->clinic_id }}&month={{ Request::get('month') }}">View</a>  
                       </td>
                     </tr>                 
                   @endforeach

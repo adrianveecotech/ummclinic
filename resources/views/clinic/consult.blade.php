@@ -82,7 +82,7 @@ td { width: 25vw; }
                                   </select>
                             </div>
                             <div class="col">
-                                <strong><label for="price">Price</label></strong>
+                                <strong><label for="price">Price</label><span style="color:red">*</span></strong>
                                 <div class="input-group mb-3">
                                     <div class="input-group-prepend">
                                       <span class="input-group-text" id="basic-addon1">RM</span>
@@ -102,9 +102,7 @@ td { width: 25vw; }
                             </div>
                         </div>
                         <br>
-                        <strong><label for="description">Description</label></strong>
-                        <textarea name="description" rows="10" class="form-control"></textarea><br>
-                        <strong><label for="diagnosis">Diagnosis</label></strong>
+                        <strong><label for="diagnosis">Diagnosis</label><span style="color:red">*</span></strong>
                         <textarea id="diagnosis" name="diagnosis" rows="10" class="form-control"></textarea><br>
                         <strong><label id="medication_details">Mediciation Details</label></strong>
                         <div class="row">
@@ -157,7 +155,10 @@ td { width: 25vw; }
                                 <input type="date" id="mc_enddate" name="mc_enddate" class="form-control">
                             </div>
                         </div>
-                        </div>                       
+                        </div>  
+                        <br>
+                        <strong><label for="clinic_admin">Admin Name</label><span style="color:red">*</span></strong>
+                        <input type="text" class="form-control" id="clinic_admin" name="clinic_admin">
                         <br>
                         <br>
                         <button type="submit" class="btn btn-success">Submit Consultation</button>

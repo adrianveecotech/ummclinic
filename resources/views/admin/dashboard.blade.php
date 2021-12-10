@@ -43,7 +43,7 @@
                     <div id="total">
                         <div>
                             {{ $count_today_consultation }}                        
-                            @if($today_percent > 0)
+                            <!-- @if($today_percent > 0)
                                 <small>
                                     <span class="badge bg-success"><i class="fa fa-arrow-up" aria-hidden="true"></i> {{ $today_percent }}%</span>
                                 </small>
@@ -52,7 +52,7 @@
                             <small>
                                 <span class="badge bg-danger"><i class="fa fa-arrow-down" aria-hidden="true"></i> {{ $today_percent }}%</span>
                             </small>
-                        @endif
+                        @endif -->
                         </div>
                     </div>
                     <div id="name">

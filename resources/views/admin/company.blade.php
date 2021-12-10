@@ -67,6 +67,8 @@
               <th scope="col">Company Name</th>
               <th scope="col" style="width: 25%">Email</th>
               <th scope="col" style="width:10%" class="text-center">Status</th>
+              <th scope="col" style="width:10%" class="text-center">Outstanding Payment</th>
+              <th scope="col" style="width:10%" class="text-center">Outstanding Balance</th>
               <th scope="col" style="width:15%">Action</th>
             </tr>
           </thead>
@@ -80,7 +82,10 @@
                     @if($company->status == 'active') <span class="badge badge-success">Active</span> @endif
                     @if($company->status == 'inactive') <span class="badge badge-danger">Inactive</span> @endif
                   </td>
-                  <td>
+                  <td class="text-center">{{$company->total_count}}</td>
+                  <td class="text-center"
+                  >RM {{number_format((float)$company->total_amount, 2, '.', '')}}</td>
+                  <td> 
                       <button class="btn btn-sm btn-info" data-toggle="modal" data-target="#edit_company_modal{{ $index }}">Edit</button>  
                       <button class="btn btn-sm btn-danger" data-toggle="modal" data-target="#delete_company_modal{{ $index }}">Delete</button>  
                   </td>          

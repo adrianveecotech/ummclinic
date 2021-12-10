@@ -120,7 +120,7 @@ b{
                     <tr>
                       <th scope="col" style="width:5%" class="text-center">#</th>
                       <th scope="col" style="width: 15%">Doctor</th>
-                      <th scope="col">Description</th>
+                      <th scope="col">Diagnosis</th>
                       <th scope="col" style="width: 10%">Date</th>
                       <th scope="col" style="width:10%" class="text-center">Action</th>
                     </tr>
@@ -130,7 +130,7 @@ b{
                       <tr>
                         <th scope="row" class="text-center">{{ $index+1 }}</th>
                         <td>{{ $consultation->doctor_name }}</td>
-                        <td>{{ $consultation->description }}</td>
+                        <td>{{ $consultation->diagnosis }}</td>
                         <td>{{ \Carbon\Carbon::parse($consultation->created_at)->format('d-m-Y') }}</td>
                         <td class="text-center">
                             <button class="btn btn-sm btn-info" data-toggle="modal" data-target="#view_consultation_modal{{ $index }}">View</button>  
@@ -161,10 +161,20 @@ b{
                                 <td class="w-25">{{ $consultation_detail->doctor_name }}</td>
                                 <th class="table-active w-25">Consultation Price</th>
                                 <td class="w-25">RM {{ number_format((float)($consultation_detail->price), 2) }}</td>
-                              </tr>                              
+                              </tr>  
+                              <tr>
+                                <th class="table-active w-25">Clinic Name</th>
+                                <td class="w-25">{{ $consultation_detail->clinic_name }}</td>
+                                <th class="table-active w-25">Clinic Admin</th>
+                                <td class="w-25">{{ $consultation_detail->clinic_admin }}</td>
+                              </tr>      
+                              <tr>
+                                <th class="table-active w-25">MC</th>
+                                <td class="w-25">{{ $consultation_detail->mc_startdate }} - {{$consultation_detail->mc_enddate}}</td>
+                              </tr>                               
                               <tr>
                                 <td id="dash_description_id" colspan="4">
-                                  {!! nl2br($consultation_detail->description) !!}
+                                  {!! nl2br($consultation_detail->diagnosis) !!}
                               </tr>
                             </tbody>
                           </table>

@@ -59,12 +59,6 @@
                                 <input type="date" class="form-control" name="end_date">
                             </div>
                           </div>
-                          <label for="status">Status</label>
-                          <select name="status" class="custom-select">
-                            <option selected></option>
-                            <option value="settled">Settled</option>
-                            <option value="unsettled">Unsettled</option>
-                          </select>
                           <label for="clinic">Clinic</label>
                           <select name="clinic" class="custom-select">
                             <option selected></option>

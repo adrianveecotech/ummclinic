@@ -167,7 +167,7 @@ class PaymentController extends Controller
                 )
                 ->orderBy('payments.created_at', 'desc');
             $allPayments = $payments->get();
-            $payments = $payments->paginate(5);
+            $payments = $payments->paginate(10);
             return view('admin.payment_history', compact('payments','companies','allPayments'));
         }
     }
@@ -609,8 +609,33 @@ class PaymentController extends Controller
         return view('company.payment', compact('outstandings_amount','clinics'));
     }
 
-    public function company_consultation_details(){
-        return view('company.outstanding_details');
+    public function company_consultation_details(Request $request){
+        $clinic_id = $request->clinic;
+    
+
+        $payments = DB::table('payments')
+        ->join('clinics', 'payments.clinic_id', 'clinics.id')
+        ->join('employees', 'employees.ic', 'payments.ic')
+        ->select(
+            'payments.*',
+            'clinics.name as clinic_name',
+            'employees.company_employee_id as employee_id',
+            'employees.name as employee_name'
+        )
+        ->where('payments.clinic_id',$clinic_id)
+        ->where('payments.company_id',Auth::user()->company_id);
+        if($request->get('month')){
+            $date = $request->month;
+            $date = explode('-',$date);
+            $year = $date[0];
+            $month = $date[1];
+
+            $payments = $payments
+            ->whereMonth('payments.created_at',$month)
+            ->whereYear('payments.created_at',$year);
+        }
+        $payments = $payments->paginate(10);
+        return view('company.outstanding_details',compact('payments'));
     }
 
     public function export_report(Request $request){
