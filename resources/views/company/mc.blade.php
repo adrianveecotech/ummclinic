@@ -79,7 +79,7 @@
                         <tr>
                           <td>{{$consultation_detail->mc_startdate}} - {{$consultation_detail->mc_enddate}}</td>
                           <td>{{$consultation_detail->clinic_name}}</td>
-                          <td>{{$consultation_detail->diagnosis}}</td>
+                          <td>{{$consultation_detail->description}}</td>
                         </tr>     
                       @endif            
                       @endforeach

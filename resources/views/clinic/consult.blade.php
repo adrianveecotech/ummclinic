@@ -102,8 +102,8 @@ td { width: 25vw; }
                             </div>
                         </div>
                         <br>
-                        <strong><label for="diagnosis">Diagnosis</label><span style="color:red">*</span></strong>
-                        <textarea id="diagnosis" name="diagnosis" rows="10" class="form-control"></textarea><br>
+                        <strong><label for="description">Diagnosis</label><span style="color:red">*</span></strong>
+                        <textarea id="description" name="description" rows="10" class="form-control"></textarea><br>
                         <strong><label id="medication_details">Mediciation Details</label></strong>
                         <div class="row">
                             <div class="col">

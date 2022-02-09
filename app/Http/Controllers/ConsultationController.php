@@ -258,7 +258,7 @@ class ConsultationController extends Controller
             'company_id' => 'required',
             'clinic_id' => 'required',
             'price' => 'required',
-            'diagnosis' => 'required',
+            'description' => 'required',
             'clinic_admin' => 'required',
             'doctor_id' => 'required_without:new_doctor',
             'new_doctor' => 'required_without:doctor_id',
@@ -296,7 +296,7 @@ class ConsultationController extends Controller
         $consultations->clinic_admin = $request->clinic_admin;
         $consultations->mc_startdate = $request->mc_startdate;
         $consultations->mc_enddate = $request->mc_enddate;
-        $consultations->diagnosis = $request->diagnosis;
+        $consultations->description = $request->description;
 
         $consultations->save();
 

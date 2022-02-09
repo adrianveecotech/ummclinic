@@ -103,10 +103,6 @@
                           <th class="table-active w-25">Consultation Price</th>
                           <td class="w-25">RM {{ number_format((float)($payment->price), 2) }}</td>
                         </tr>                              
-                        <tr>
-                          <td id="dash_description_id" colspan="4">
-                            {!! nl2br($payment->description) !!}
-                        </tr>
                       </tbody>
                     </table>
                   </div>

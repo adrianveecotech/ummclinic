@@ -130,7 +130,7 @@ b{
                       <tr>
                         <th scope="row" class="text-center">{{ $index+1 }}</th>
                         <td>{{ $consultation->doctor_name }}</td>
-                        <td>{{ $consultation->diagnosis }}</td>
+                        <td>{{ $consultation->description }}</td>
                         <td>{{ \Carbon\Carbon::parse($consultation->created_at)->format('d-m-Y') }}</td>
                         <td class="text-center">
                             <button class="btn btn-sm btn-info" data-toggle="modal" data-target="#view_consultation_modal{{ $index }}">View</button>  
@@ -170,11 +170,17 @@ b{
                               </tr>      
                               <tr>
                                 <th class="table-active w-25">MC</th>
-                                <td class="w-25">{{ $consultation_detail->mc_startdate }} - {{$consultation_detail->mc_enddate}}</td>
+                                <td class="w-25">
+                                  @if($consultation_detail->mc_startdate == $consultation_detail->mc_enddate)
+                                  {{ $consultation_detail->mc_startdate }}
+                                  @else
+                                  From {{ $consultation_detail->mc_startdate}} to {{$consultation_detail->mc_enddate}}
+                                  @endif
+                                </td>
                               </tr>                               
                               <tr>
                                 <td id="dash_description_id" colspan="4">
-                                  {!! nl2br($consultation_detail->diagnosis) !!}
+                                  {!! nl2br($consultation_detail->description) !!}
                               </tr>
                             </tbody>
                           </table>
