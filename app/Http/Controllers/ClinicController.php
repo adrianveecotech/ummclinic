@@ -48,7 +48,7 @@ class ClinicController extends Controller
         $request->validate([
             'name' => 'required|max:255',
             'email' => 'required|unique:clinics|unique:users',
-            'address' => 'required|max:255',
+        'address' => 'required|max:255',
             'contact' => 'required|max:255',
         ]);
 
