@@ -24,6 +24,7 @@ class EmployeeController extends Controller
                     'employees.*',
                     'companys.name as company_name'
                 )
+                ->where('employees.category','=','employee')
                 ->where(function ($query) use ($search) {
                     $query
                         ->where('employees.name', 'LIKE', '%'.$search.'%')
@@ -45,6 +46,7 @@ class EmployeeController extends Controller
                     'employees.*',
                     'companys.name as company_name'
                 )
+                ->where('employees.category','=','employee')
                 ->where('employees.status', 'LIKE', $status)
                 ->orderBy('employees.created_at', 'desc')
                 ->paginate(10);
@@ -59,6 +61,7 @@ class EmployeeController extends Controller
                     'employees.*',
                     'companys.name as company_name'
                 )
+                ->where('employees.category','=','employee')
                 ->orderBy('employees.created_at', 'desc')
                 ->paginate(10);
 

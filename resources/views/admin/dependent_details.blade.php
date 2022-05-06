@@ -72,6 +72,9 @@
               <th scope="col">Dependent Name</th>
               <th scope="col">Employee Name</th>
               <th scope="col" style="width:10%" class="text-center">Category</th>
+              <th scope="col" style="width: 10%">Monthly Limit</th>
+              <th scope="col" style="width: 10%">Overall Limit</th>
+              <th scope="col" style="width: 10%">Daily Limit</th>
               <th scope="col" style="width:8%" class="text-center">Status</th>
               <th scope="col" style="width:7%" class="text-center">Action</th>
             </tr>
@@ -83,6 +86,20 @@
                   <td>{{ $dependent->name }}</td>
                   <td>{{ $dependent->employee_name }}</td>
                   <td>{{ ucfirst($dependent->category) }}</td>
+                  <td class="text-center">
+                    @if($dependent->monthly_limit_exceeded == 'false') <span class="badge badge-success">Not Exceeded</span> @endif
+                    @if($dependent->monthly_limit_exceeded == 'true') <span class="badge badge-danger">Exceeded</span> @endif
+                    @if($dependent->monthly_limit_exceeded == 'Limit not set') <span class="badge badge-warning">Limit not set</span> @endif
+                  </td>
+                  <td class="text-center">
+                    @if($dependent->overall_limit_exceeded == 'false') <span class="badge badge-success">Not Exceeded</span> @endif
+                    @if($dependent->overall_limit_exceeded == 'true') <span class="badge badge-danger">Exceeded</span> @endif
+                  </td>
+                  <td class="text-center">
+                    @if($dependent->daily_limit_exceeded == 'false') <span class="badge badge-success">Not Exceeded</span> @endif
+                    @if($dependent->daily_limit_exceeded == 'true') <span class="badge badge-danger">Exceeded</span> @endif
+                    @if($dependent->daily_limit_exceeded == 'Limit not set') <span class="badge badge-warning">Limit not set</span> @endif
+                  </td>
                   <td class="text-center">
                     @if($dependent->status == 'active') <span class="badge badge-success">Active</span> @endif
                     @if($dependent->status == 'inactive') <span class="badge badge-danger">Inactive</span> @endif
