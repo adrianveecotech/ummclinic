@@ -31,6 +31,7 @@
           </form>
         </div>
         <div class="float-right mb-3">
+        <button type="button" class="btn btn-success text-white" onclick="exportCsvClinic()"><i class="fa fa fa-file-excel-o" aria-hidden="true"></i></button>
           <a href="/admin/clinic/new" class="btn btn-info text-white"><i class="fa fa-plus"></i> Register Clinic</a>
           <button type="button" class="btn btn-info text-white" data-toggle="modal" data-target="#filter_clinic_modal"><i class="fa fa-filter" aria-hidden="true"></i></button>
           <div class="modal fade" id="filter_clinic_modal" tabindex="-1" role="dialog" aria-labelledby="clinicFilterModal" aria-hidden="true">
@@ -158,4 +159,43 @@
       </div>
     </div>
 </div>
+@endsection
+
+@section('scripts')
+<script type="text/javascript">
+
+function exportCsvClinic(){
+    var branchDetail = <?php echo json_encode($branchDetail) ?>;
+    var allClinics = <?php echo json_encode($allClinics) ?>;
+    let csvContent = "data:text/csv;charset=utf-8,";
+    csvContent += "Clinic details \r\n";
+    allClinics.forEach(clinic => {
+        if(clinic.branch_name)
+          csvContent += "\r\n" +  clinic.name + ", Main Branch - " +  clinic.branch_name;
+        else
+          csvContent += "\r\n" +  clinic.name + "(Main Branch)";
+        csvContent += "\r\nIC, Name, Company, Category , Diagnosis, MC, Amount, Date\r\n";
+        paymentDetailsFiltered = branchDetail.filter(o => o.clinic_id == clinic.id);
+        paymentDetailsFiltered.forEach(detail => {
+            date = (new Date(Date.parse(detail.consultation_created_at)));
+            created = date.getFullYear() + '-' +  date.getMonth() + '-' + date.getDate();
+            var mc = '-';
+            if(detail.mc_startdate != null){
+                mc = detail.mc_startdate + ' - ' + detail.mc_enddate;
+            }
+            description = detail.description.replace(/(\r\n|\n|\r)/gm, ";");
+            csvContent +=  detail.ic + "," + detail.name + "," + detail.company_name + "," + detail.category + "," + description + "," + mc  + "," + "RM " + detail.price.toFixed(2) + "," + created + "\r\n";
+        });
+    });           
+    csvContent += "\r\n\r\n";
+
+    var encodedUri = encodeURI(csvContent);
+    var link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "clinic_detail.csv");
+    document.body.appendChild(link);
+    link.click()
+}
+
+</script>
 @endsection

@@ -12,30 +12,32 @@ use App\Models\User;
 class ClinicController extends Controller
 {
     public function index(Request $request){
+        $branchDetail =  DB::table('consultations')
+            ->select('consultations.*','clinics.*','employees.*','clinics.name as clinic_name','employees.name as employee_name','consultations.id as consultation_id','clinics.id as clinic_id','employees.id as employee_id','consultations.created_at as consultation_created_at','companys.name as company_name')
+            ->join('clinics', 'clinics.id', '=', 'consultations.clinic_id')
+            ->join('companys', 'companys.id', '=', 'consultations.company_id')
+            ->join('employees', 'employees.ic', '=', 'consultations.ic')
+            ->get();
+        // $allClinics = Clinic::leftJoin('clinics as c1','clinics.branch_clinic_id','c1.id')->select('clinics.*','c1.name as branch_name')->get();
         if($request->get('search')){
             $search = $request->get('search');
 
-            $clinics = Clinic::where('name', 'LIKE', '%'.$search.'%')
-                ->paginate(10);
-
-            return view('admin.clinic', compact('clinics'));
-
+            $clinics = Clinic::leftJoin('clinics as c1','clinics.branch_clinic_id','c1.id')->select('clinics.*','c1.name as branch_name')->where('clinics.name', 'LIKE', '%'.$search.'%');
+                
         }        
         
         else if($request->get('status')){
             $status = $request->get('status');
 
-            $clinics = Clinic::where('status', 'LIKE', $status)
-                ->paginate(10);
-
-            return view('admin.clinic', compact('clinics'));
+            $clinics = Clinic::leftJoin('clinics as c1','clinics.branch_clinic_id','c1.id')->select('clinics.*','c1.name as branch_name')->where('clinics.status', 'LIKE', $status);
         }
 
         else{
-            $clinics = Clinic::paginate(10);
-
-            return view('admin.clinic', compact('clinics'));
+            $clinics = Clinic::leftJoin('clinics as c1','clinics.branch_clinic_id','c1.id')->select('clinics.*','c1.name as branch_name');
         }
+        $allClinics = $clinics->get();
+        $clinics = $clinics->paginate(10);
+        return view('admin.clinic', compact('clinics','branchDetail','allClinics'));
     }
 
     public function register(){
