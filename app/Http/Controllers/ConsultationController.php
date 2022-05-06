@@ -125,14 +125,14 @@ class ConsultationController extends Controller
             ->select('companys.name as company_name', 'employees.*')
             ->where('employees.ic', 'LIKE', $ic)
             ->get();
-        if($employees->count() == 0){
-            $employees = DB::table('dependents')
-            ->join('employees', 'employee_id', 'employees.id')
-            ->join('companys', 'employees.company_id', 'companys.id')
-            ->select('companys.name as company_name', 'employees.*' , 'employees.name as employee_name' , 'dependents.*')
-            ->where('dependents.ic', 'LIKE', $ic)
-            ->get();
-        }
+        // if($employees->count() == 0){
+        //     $employees = DB::table('dependents')
+        //     ->join('employees', 'employee_id', 'employees.id')
+        //     ->join('companys', 'employees.company_id', 'companys.id')
+        //     ->select('companys.name as company_name', 'employees.*' , 'employees.name as employee_name' , 'dependents.*')
+        //     ->where('dependents.ic', 'LIKE', $ic)
+        //     ->get();
+        // }
         $doctors = DB::table('doctors')
             ->where('clinic_id', Auth::user()->clinic_id)
             ->where('status', 'active')

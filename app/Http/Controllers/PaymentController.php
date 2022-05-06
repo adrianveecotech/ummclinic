@@ -93,7 +93,7 @@ class PaymentController extends Controller
     }
 
     public function getPaymentsByCompanyAndDate($company_id,$date){
-        $paymentsEmployee = DB::table('payments')
+        $payments = DB::table('payments')
         ->leftJoin('consultations','consultations.id','payments.consultation_id')
         ->leftJoin('clinics','consultations.clinic_id','clinics.id')
         ->leftJoin('employees','consultations.employee_id','employees.id')
@@ -103,23 +103,22 @@ class PaymentController extends Controller
         ->where('payments.status','unsettled')
         ->where('payments.company_id',$company_id)
         ->whereRaw("DATE_FORMAT(payments.created_at,'%Y-%M') = '$date'")
-        ->where('consultations.employee_id','!=','NULL')
         ->orderBy('payments.created_at', 'desc');
 
-        $paymentsDependent = DB::table('payments')
-        ->leftJoin('consultations','consultations.id','payments.consultation_id')
-        ->leftJoin('clinics','consultations.clinic_id','clinics.id')
-        ->leftJoin('dependents','consultations.dependent_id','dependents.id')
-        ->select(
-            'payments.*','clinics.name as clinic_name','dependents.name as patient_name'
-        )
-        ->where('payments.status','unsettled')
-        ->where('payments.company_id',$company_id)
-        ->whereRaw("DATE_FORMAT(payments.created_at,'%Y-%M') = '$date'")
-        ->where('consultations.dependent_id','!=','NULL')
-        ->orderBy('payments.created_at', 'desc');
+        // $paymentsDependent = DB::table('payments')
+        // ->leftJoin('consultations','consultations.id','payments.consultation_id')
+        // ->leftJoin('clinics','consultations.clinic_id','clinics.id')
+        // ->leftJoin('dependents','consultations.dependent_id','dependents.id')
+        // ->select(
+        //     'payments.*','clinics.name as clinic_name','dependents.name as patient_name'
+        // )
+        // ->where('payments.status','unsettled')
+        // ->where('payments.company_id',$company_id)
+        // ->whereRaw("DATE_FORMAT(payments.created_at,'%Y-%M') = '$date'")
+        // ->where('consultations.dependent_id','!=','NULL')
+        // ->orderBy('payments.created_at', 'desc');
         
-        $payments = $paymentsEmployee->union($paymentsDependent);
+        // $payments = $paymentsEmployee->union($paymentsDependent);
         return $payments;
     }
 
@@ -354,7 +353,7 @@ class PaymentController extends Controller
             $search = $request->get('search');
             $company_id = $request->get('company');
 
-            $paymentsEmployees = DB::table('payments')
+            $payments = DB::table('payments')
                 ->join('employees', 'payments.ic', 'employees.ic')
                 ->join('companys', 'payments.company_id', 'companys.id')
                 ->join('consultations', 'payments.consultation_id', 'consultations.id')
@@ -375,27 +374,27 @@ class PaymentController extends Controller
                         ->orwhere('companys.name', 'LIKE', '%'.$search.'%');
                     });
             
-            $paymentsDependents = DB::table('payments')
-                ->join('dependents', 'payments.ic', 'dependents.ic')
-                ->join('companys', 'payments.company_id', 'companys.id')
-                ->join('consultations', 'payments.consultation_id', 'consultations.id')
-                ->join('doctors', 'consultations.doctor_id', 'doctors.id')
-                ->select(
-                    'dependents.name as patient_name', 
-                    'companys.name as company_name', 
-                    'consultations.*',
-                    'doctors.name as doctor_name',
-                    'payments.*'
-                )
-                ->where('payments.clinic_id', Auth::user()->clinic_id)
-                ->where('payments.company_id', $company_id)
-                ->orderby('payments.created_at', 'desc')
-                ->where(function ($query) use ($search) {
-                    $query
-                        ->where('payments.ic', 'LIKE', $search)
-                        ->orwhere('companys.name', 'LIKE', '%'.$search.'%');
-                    });
-            $payments = $paymentsEmployees->unionAll($paymentsDependents);
+            // // $paymentsDependents = DB::table('payments')
+            // //     ->join('dependents', 'payments.ic', 'dependents.ic')
+            // //     ->join('companys', 'payments.company_id', 'companys.id')
+            // //     ->join('consultations', 'payments.consultation_id', 'consultations.id')
+            // //     ->join('doctors', 'consultations.doctor_id', 'doctors.id')
+            // //     ->select(
+            // //         'dependents.name as patient_name', 
+            // //         'companys.name as company_name', 
+            // //         'consultations.*',
+            // //         'doctors.name as doctor_name',
+            // //         'payments.*'
+            // //     )
+            // //     ->where('payments.clinic_id', Auth::user()->clinic_id)
+            // //     ->where('payments.company_id', $company_id)
+            // //     ->orderby('payments.created_at', 'desc')
+            // //     ->where(function ($query) use ($search) {
+            // //         $query
+            // //             ->where('payments.ic', 'LIKE', $search)
+            // //             ->orwhere('companys.name', 'LIKE', '%'.$search.'%');
+            // //         });
+            // $payments = $paymentsEmployees->unionAll($paymentsDependents);
 
             $companys = Company::select('name')->where('id', $company_id)->get();
 
@@ -430,7 +429,7 @@ class PaymentController extends Controller
             $end_date = $request->get('end_date');
             $status = $request->get('status');
 
-            $paymentsEmployees = DB::table('payments')
+            $payments = DB::table('payments')
                 ->join('employees', 'payments.ic', 'employees.ic')
                 ->join('companys', 'payments.company_id', 'companys.id')
                 ->join('consultations', 'payments.consultation_id', 'consultations.id')
@@ -444,20 +443,20 @@ class PaymentController extends Controller
                     'payments.created_at as payment_created_at',
                 );
 
-            $paymentsDependents = DB::table('payments')
-                ->join('dependents', 'payments.ic', 'dependents.ic')
-                ->join('companys', 'payments.company_id', 'companys.id')
-                ->join('consultations', 'payments.consultation_id', 'consultations.id')
-                ->join('doctors', 'consultations.doctor_id', 'doctors.id')
-                ->select(
-                    'dependents.name as patient_name', 
-                    'companys.name as company_name', 
-                    'consultations.price',
-                    'doctors.name as doctor_name',
-                    'payments.*',
-                    'payments.created_at as payment_created_at',
-                );
-            $payments = $paymentsEmployees->unionAll($paymentsDependents);
+            // $paymentsDependents = DB::table('payments')
+            //     ->join('dependents', 'payments.ic', 'dependents.ic')
+            //     ->join('companys', 'payments.company_id', 'companys.id')
+            //     ->join('consultations', 'payments.consultation_id', 'consultations.id')
+            //     ->join('doctors', 'consultations.doctor_id', 'doctors.id')
+            //     ->select(
+            //         'dependents.name as patient_name', 
+            //         'companys.name as company_name', 
+            //         'consultations.price',
+            //         'doctors.name as doctor_name',
+            //         'payments.*',
+            //         'payments.created_at as payment_created_at',
+            //     );
+            // $payments = $paymentsEmployees->unionAll($paymentsDependents);
             $outstanding_amount = DB::table('payments')
             ->join('companys', 'payments.company_id', 'companys.id')
             ->select(
@@ -507,7 +506,7 @@ class PaymentController extends Controller
             $start_date = $request->get('start_date');
             $end_date = $request->get('end_date');
 
-            $paymentsEmployees = DB::table('payments')
+            $payments = DB::table('payments')
                 ->join('employees', 'payments.ic', 'employees.ic')
                 ->join('companys', 'payments.company_id', 'companys.id')
                 ->join('consultations', 'payments.consultation_id', 'consultations.id')
@@ -524,27 +523,28 @@ class PaymentController extends Controller
                 ->whereDate('payments.created_at', '<=', $end_date)
                 ->where('payments.clinic_id', Auth::user()->clinic_id)
                 ->where('payments.company_id', $company_id)
-                ->orderby('payments.created_at', 'desc');
+                ->orderby('payments.created_at', 'desc')
+                ->paginate(10);
 
-            $paymentsDependents = DB::table('payments')
-                ->join('dependents', 'payments.ic', 'dependents.ic')
-                ->join('companys', 'payments.company_id', 'companys.id')
-                ->join('consultations', 'payments.consultation_id', 'consultations.id')
-                ->join('doctors', 'consultations.doctor_id', 'doctors.id')
-                ->select(
-                    'dependents.name as patient_name', 
-                    'companys.name as company_name', 
-                    'consultations.price',
-                    'doctors.name as doctor_name',
-                    'payments.*',
-                    'payments.created_at as payment_created_at',
-                )
-                ->whereDate('payments.created_at', '>=', $start_date)
-                ->whereDate('payments.created_at', '<=', $end_date)
-                ->where('payments.clinic_id', Auth::user()->clinic_id)
-                ->where('payments.company_id', $company_id)
-                ->orderby('payments.created_at', 'desc');
-            $payments = $paymentsEmployees->unionAll($paymentsDependents)->orderBy('payment_created_at', 'desc')->paginate(10);
+            // $paymentsDependents = DB::table('payments')
+            //     ->join('dependents', 'payments.ic', 'dependents.ic')
+            //     ->join('companys', 'payments.company_id', 'companys.id')
+            //     ->join('consultations', 'payments.consultation_id', 'consultations.id')
+            //     ->join('doctors', 'consultations.doctor_id', 'doctors.id')
+            //     ->select(
+            //         'dependents.name as patient_name', 
+            //         'companys.name as company_name', 
+            //         'consultations.price',
+            //         'doctors.name as doctor_name',
+            //         'payments.*',
+            //         'payments.created_at as payment_created_at',
+            //     )
+            //     ->whereDate('payments.created_at', '>=', $start_date)
+            //     ->whereDate('payments.created_at', '<=', $end_date)
+            //     ->where('payments.clinic_id', Auth::user()->clinic_id)
+            //     ->where('payments.company_id', $company_id)
+            //     ->orderby('payments.created_at', 'desc');
+            // $payments = $paymentsEmployees->unionAll($paymentsDependents)->orderBy('payment_created_at', 'desc')->paginate(10);
 
             $companys = Company::select('name')->where('id', $company_id)->get();
 
@@ -571,7 +571,7 @@ class PaymentController extends Controller
 
         if($request->get('company')){
             $company_id = $request->get('company');
-            $paymentsEmployees = DB::table('payments')
+            $payments = DB::table('payments')
                 ->join('employees', 'payments.ic', 'employees.ic')
                 ->join('companys', 'payments.company_id', 'companys.id')
                 ->join('consultations', 'payments.consultation_id', 'consultations.id')
@@ -585,23 +585,25 @@ class PaymentController extends Controller
                     'payments.created_at as payment_created_at',
                 )
                 ->where('payments.company_id', $company_id)
-                ->where('payments.clinic_id', Auth::user()->clinic_id);
-            $paymentsDependents = DB::table('payments')
-                ->join('dependents', 'payments.ic', 'dependents.ic')
-                ->join('companys', 'payments.company_id', 'companys.id')
-                ->join('consultations', 'payments.consultation_id', 'consultations.id')
-                ->join('doctors', 'consultations.doctor_id', 'doctors.id')
-                ->select(
-                    'dependents.name as patient_name', 
-                    'companys.name as company_name', 
-                    'consultations.price',
-                    'doctors.name as doctor_name',
-                    'payments.*',
-                    'payments.created_at as payment_created_at',
-                )
-                ->where('payments.company_id', $company_id)
-                ->where('payments.clinic_id', Auth::user()->clinic_id);
-            $payments = $paymentsEmployees->unionAll($paymentsDependents)->orderBy('payment_created_at', 'desc')->paginate(10);
+                ->where('payments.clinic_id', Auth::user()->clinic_id)
+                ->orderBy('payment_created_at', 'desc')
+                ->paginate(10);
+            // $paymentsDependents = DB::table('payments')
+            //     ->join('dependents', 'payments.ic', 'dependents.ic')
+            //     ->join('companys', 'payments.company_id', 'companys.id')
+            //     ->join('consultations', 'payments.consultation_id', 'consultations.id')
+            //     ->join('doctors', 'consultations.doctor_id', 'doctors.id')
+            //     ->select(
+            //         'dependents.name as patient_name', 
+            //         'companys.name as company_name', 
+            //         'consultations.price',
+            //         'doctors.name as doctor_name',
+            //         'payments.*',
+            //         'payments.created_at as payment_created_at',
+            //     )
+            //     ->where('payments.company_id', $company_id)
+            //     ->where('payments.clinic_id', Auth::user()->clinic_id);
+            // $payments = $paymentsEmployees->unionAll($paymentsDependents)->orderBy('payment_created_at', 'desc')->paginate(10);
 
             $companys = Company::select('name')->where('id', $company_id)->get();
 
