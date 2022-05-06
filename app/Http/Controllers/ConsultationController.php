@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Clinic;
 use App\Models\Consultation;
 use App\Models\ConsultationMedication;
-use App\Models\Dependent;
 use App\Models\Doctor;
 use App\Models\Employee;
 use App\Models\MedicationConsultation;
