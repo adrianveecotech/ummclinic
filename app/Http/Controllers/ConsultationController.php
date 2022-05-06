@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Clinic;
 use App\Models\Consultation;
 use App\Models\ConsultationMedication;
+use App\Models\Dependent;
 use App\Models\Doctor;
 use App\Models\Employee;
 use App\Models\MedicationConsultation;
@@ -25,12 +26,15 @@ class ConsultationController extends Controller
                 ->join('clinics', 'consultations.clinic_id', 'clinics.id')
                 ->join('doctors', 'consultations.doctor_id', 'doctors.id')
                 ->join('payments', 'consultations.id', 'payments.consultation_id')
+                ->join('users', 'users.id', 'consultations.clinic_admin')
                 ->select(
                     'employees.name as employee_name',
                     'clinics.name as clinic_name',
                     'consultations.*',
                     'doctors.name as doctor_name',
                     'payments.status as payment_status',
+                    'users.name as clinic_admin',
+                    'consultations.id as consultation_id'
                     )
                 ->where(function ($query) use ($search) {
                     $query
@@ -41,7 +45,6 @@ class ConsultationController extends Controller
                 ->orderBy('consultations.created_at', 'desc')
                 ->paginate(10);
                 $clinics = Clinic::orderBy('name')->get();
-            return view('admin.consultation_history', compact('consultations','clinics'));
         }
         else if($request->get('start_date') && $request->get('end_date')){
             $start_date = $request->get('start_date');
@@ -53,12 +56,14 @@ class ConsultationController extends Controller
                 ->join('clinics', 'consultations.clinic_id', 'clinics.id')
                 ->join('doctors', 'consultations.doctor_id', 'doctors.id')
                 ->join('payments', 'consultations.id', 'payments.consultation_id')
+                ->join('users', 'users.id', 'consultations.clinic_admin')
                 ->select(
                     'employees.name as employee_name',
                     'clinics.name as clinic_name',
                     'consultations.*',
                     'doctors.name as doctor_name',
                     'payments.status as payment_status',
+                    'users.name as clinic_admin'
                 )
                 ->whereDate('consultations.created_at', '>=', $start_date)
                 ->whereDate('consultations.created_at', '<=', $end_date);
@@ -68,7 +73,6 @@ class ConsultationController extends Controller
             $consultations = $consultations->orderBy('consultations.created_at', 'desc')->paginate(10);
             $clinics = Clinic::orderBy('name')->get();
 
-            return view('admin.consultation_history', compact('consultations','clinics'));
         }
         else if($request->get('clinic')){
             $clinic_id = $request->get('clinic');
@@ -78,19 +82,20 @@ class ConsultationController extends Controller
                 ->join('clinics', 'consultations.clinic_id', 'clinics.id')
                 ->join('doctors', 'consultations.doctor_id', 'doctors.id')
                 ->join('payments', 'consultations.id', 'payments.consultation_id')
+                ->join('users', 'users.id', 'consultations.clinic_admin')
                 ->select(
                     'employees.name as employee_name',
                     'clinics.name as clinic_name',
                     'consultations.*',
                     'doctors.name as doctor_name',
                     'payments.status as payment_status',
+                    'users.name as clinic_admin'
                 )
                     ->where('clinics.id', '=', $clinic_id)
                     ->orderBy('consultations.created_at', 'desc')
                     ->paginate(10);
             $clinics = Clinic::orderBy('name')->get();
 
-            return view('admin.consultation_history', compact('consultations','clinics'));
         }
         else{
             $consultations = DB::table('consultations')
@@ -109,8 +114,9 @@ class ConsultationController extends Controller
                 ->paginate(10);
             $clinics = Clinic::orderBy('name')->get();
 
-        return view('admin.consultation_history', compact('consultations','clinics'));
         }    
+        $medications = MedicationConsultation::get();
+        return view('admin.consultation_history', compact('consultations','clinics','medications'));
     }
 
     // clinic
@@ -120,7 +126,14 @@ class ConsultationController extends Controller
             ->select('companys.name as company_name', 'employees.*')
             ->where('employees.ic', 'LIKE', $ic)
             ->get();
-
+        if($employees->count() == 0){
+            $employees = DB::table('dependents')
+            ->join('employees', 'employee_id', 'employees.id')
+            ->join('companys', 'employees.company_id', 'companys.id')
+            ->select('companys.name as company_name', 'employees.*' , 'employees.name as employee_name' , 'dependents.*')
+            ->where('dependents.ic', 'LIKE', $ic)
+            ->get();
+        }
         $doctors = DB::table('doctors')
             ->where('clinic_id', Auth::user()->clinic_id)
             ->where('status', 'active')
@@ -130,6 +143,11 @@ class ConsultationController extends Controller
     }
 
     public function search_patient(Request $request){
+        $employees = [];
+        $status = [];
+        $daily_limit_exceeded = '';
+        $monthly_limit_exceeded = '';
+        $overall_limit_exceeded = '';
         $query = $request->get('query');
         if($query){
             $employees = DB::table('employees')
@@ -137,47 +155,135 @@ class ConsultationController extends Controller
                 ->select('companys.name as company_name', 'employees.*')
                 ->where('employees.ic', 'LIKE', $query)
                 ->orwhere('employees.company_employee_id', 'LIKE', $query)
-                ->get();
-            $status = [];
-            foreach($employees as $employee){
-                $status = $employee->status;
+                ->first();
+            if(($employees) == null){
+                return view('clinic.search_patient', compact('employees',  'status'));
             }
-            $consultations = DB::table('consultations')
+            if($employees->category == 'dependent' || $employees->category == 'spouse'){
+                $status = $employees->status;
+                $consultations = DB::table('consultations')
                     ->join('doctors', 'doctor_id', 'doctors.id')
                     ->select('doctors.name as doctor_name', 'consultations.*')
                     ->where('consultations.ic', $query)
                     ->where('consultations.clinic_id', Auth::user()->clinic_id)
-                    ->orwhere('consultations.company_employee_id', $query)
                     ->orderBy('consultations.created_at', 'desc');
-            $number_of_mc = Consultation::whereNotNull('mc_startdate')->where('ic',$query)->orWhere('company_employee_id', $query)->where('consultations.clinic_id', Auth::user()->clinic_id)->get()->count();
-            $consultations = $consultations->paginate(5);
-            $monthly_spent = Consultation::where('ic',$query)->whereMonth('created_at',date('m') )->sum('price');
-            $monthly_limit_exceeded = 'False';
-            if($monthly_spent > $employees[0]->monthly_limit){
-                $monthly_limit_exceeded = 'True';
-            }
+                $number_of_mc = Consultation::whereNotNull('mc_startdate')->where('ic',$query)->where('consultations.clinic_id', Auth::user()->clinic_id)->get()->count();
+                $consultations = $consultations->paginate(5);
+                
+                $employee_of_dependent = Employee::where('id',$employees->employee_id)->first();
+                $employees_all = Employee::where('employee_id',$employee_of_dependent->id)->pluck('id')->toArray();
+                $overall_spent = Consultation::whereIn('employee_id',$employees_all)->whereBetween('created_at', [date($employee_of_dependent->overall_limit_start_date), date($employee_of_dependent->overall_limit_end_date)])->sum('price');
+                if($employee_of_dependent->overall_limit_start_date <= date('Y-m-d') && date('Y-m-d') <= $employee_of_dependent->overall_limit_end_date){
+                    if($overall_spent > $employee_of_dependent->overall_limit)
+                        $overall_limit_exceeded = 'true';
+                    else
+                        $overall_limit_exceeded = 'false';
+                }else{
+                    $overall_limit_exceeded = 'Limit not set';
+                }
 
-            $yearly_spent = Consultation::where('ic',$query)->whereYear('created_at',date('Y') )->sum('price');
-            $yearly_limit_exceeded = 'False';
-            if($yearly_spent > $employees[0]->yearly_limit){
-                $yearly_limit_exceeded = 'True';
-            }
-            $consultation_details = DB::table('consultations')
-                    ->join('employees', 'consultations.ic', 'employees.ic')
-                    ->join('clinics', 'consultations.clinic_id', 'clinics.id')
-                    ->join('doctors', 'consultations.doctor_id', 'doctors.id')
-                    ->select('employees.name as employee_name', 'employees.ic as employee_ic', 'doctors.name as doctor_name', 'consultations.*','clinics.name as clinic_name','consultations.clinic_admin as clinic_admin')
-                    ->where('consultations.ic', $query)
-                    ->orwhere('consultations.company_employee_id', $query)
-                    ->orderBy('consultations.created_at', 'desc')
-                    ->paginate(5);
+                $monthly_spent = Consultation::where('id',$employees->id)->whereYear('created_at',date('Y') )->whereMonth('created_at',date('m') )->sum('price');
+                if($employees->monthly_limit_start_date <= date('Y-m-d') && date('Y-m-d') <= $employees->monthly_limit_end_date){
+                    if($monthly_spent > $employees->monthly_limit)
+                        $monthly_limit_exceeded = 'true';
+                    else
+                        $monthly_limit_exceeded = 'false';
+                }else{
+                    $monthly_limit_exceeded = 'Limit not set';
+                }
 
-            return view('clinic.search_patient', compact('employees', 'status', 'consultations', 'consultation_details','number_of_mc','monthly_limit_exceeded','yearly_limit_exceeded'));
+                if($employees->daily_limit){
+                    $daily_spent = Consultation::where('ic',$employees->ic)->whereYear('created_at',date('Y') )->whereMonth('created_at',date('m') )->whereDay('created_at',date('d'))->sum('price');
+                    if($daily_spent > $employees->daily_limit)
+                        $daily_limit_exceeded = 'true';
+                    else
+                        $daily_limit_exceeded = 'false';
+                }else{
+                    $daily_limit_exceeded = 'Limit not set';
+                }
+                $dependents = $employees;
+                $consultation_details = DB::table('consultations')
+                        ->join('clinics', 'consultations.clinic_id', 'clinics.id')
+                        ->join('doctors', 'consultations.doctor_id', 'doctors.id')
+                        ->select('doctors.name as doctor_name', 'consultations.*','clinics.name as clinic_name','consultations.clinic_admin as clinic_admin')
+                        ->where('consultations.ic', $query)
+                        ->orderBy('consultations.created_at', 'desc')
+                        ->paginate(5);
+                return view('clinic.search_dependent', compact('dependents','status', 'consultations', 'consultation_details','number_of_mc','overall_limit_exceeded','employee_of_dependent','overall_spent','dependents','daily_limit_exceeded','monthly_limit_exceeded','monthly_spent','daily_spent'));
+            }else{
+                $status = $employees->status;
+                $consultations = DB::table('consultations')
+                        ->join('doctors', 'doctor_id', 'doctors.id')
+                        ->select('doctors.name as doctor_name', 'consultations.*')
+                        ->where('consultations.ic', $query)
+                        ->where('consultations.clinic_id', Auth::user()->clinic_id)
+                        ->orwhere('consultations.company_employee_id', $query)
+                        ->orderBy('consultations.created_at', 'desc');
+                $number_of_mc = Consultation::whereNotNull('mc_startdate')->where('ic',$query)->orWhere('company_employee_id', $query)->where('consultations.clinic_id', Auth::user()->clinic_id)->get()->count();
+                $consultations = $consultations->paginate(5);
+
+                $daily_spent = Consultation::where('ic',$query)->whereDate('created_at', date('Y-m-d'))->sum('price');
+                $daily_limit_exceeded = 'false';
+
+                // $monthly_spent = Consultation::where('ic',$query)->whereBetween('created_at', [$employees->monthly_limit_start_date,$employees->monthly_limit_end_date ])->sum('price');
+                $monthly_spent = Consultation::where('ic',$query)->whereYear('created_at',date('Y') )->whereMonth('created_at',date('m') )->sum('price');
+                $monthly_limit_exceeded = 'false';
+
+                $dependents_of_employee = Employee::where('employee_id',$employees->id)->where('category','!=','employee')->get()->toArray();
+                // $ics = array_merge(array_column($dependents_of_employee,'ic'),array($employees->ic));
+                // $overall_spent = Consultation::whereIn('ic', $ics)->whereBetween('created_at', [$employees->overall_limit_start_date,$employees->overall_limit_end_date ])->sum('price');
+                $overall_limit_exceeded = 'false';
+                $employees_all = Employee::where('employee_id',$employees->id)->pluck('id')->toArray();
+                $overall_spent = Consultation::whereIn('employee_id',$employees_all)->whereBetween('created_at', [date($employees->overall_limit_start_date), date($employees->overall_limit_end_date)])->sum('price');
+                if(($employees) != null){
+                    // if($monthly_spent > $employees->monthly_limit){
+                    //     $monthly_limit_exceeded = 'true';
+                    // };
+                    // if($overall_spent > $employees->overall_limit){
+                    //     $overall_limit_exceeded = 'true';
+                    // }
+                    // if($daily_spent > $employees->daily_limit){
+                    //     $daily_limit_exceeded = 'true';
+                    // }
+                    if($employees->monthly_limit_start_date <= date('Y-m-d') && date('Y-m-d') <= $employees->monthly_limit_end_date){
+                        if($monthly_spent > $employees->monthly_limit)
+                            $monthly_limit_exceeded = 'true';
+                        else
+                            $monthly_limit_exceeded = 'false';
+                    }else{
+                        $monthly_limit_exceeded = 'Limit not set';
+                    }
+                    if($employees->overall_limit_start_date <= date('Y-m-d') && date('Y-m-d') <= $employees->overall_limit_end_date){
+                        if($overall_spent > $employees->overall_limit)
+                            $overall_limit_exceeded = 'true';
+                        else
+                            $overall_limit_exceeded = 'false';
+                    }else{
+                        $overall_limit_exceeded = 'Limit not set';
+                    }
+                    if($employees->daily_limit){
+                        if($daily_spent > $employees->daily_limit)
+                            $daily_limit_exceeded = 'true';
+                        else
+                            $daily_limit_exceeded = 'false';
+                    }else{
+                        $daily_limit_exceeded = 'Limit not set';
+                    }
+                }
+                $consultation_details = DB::table('consultations')
+                        ->join('employees', 'consultations.ic', 'employees.ic')
+                        ->join('clinics', 'consultations.clinic_id', 'clinics.id')
+                        ->join('doctors', 'consultations.doctor_id', 'doctors.id')
+                        ->select('employees.name as employee_name', 'employees.ic as employee_ic', 'doctors.name as doctor_name', 'consultations.*','clinics.name as clinic_name','consultations.clinic_admin as clinic_admin')
+                        ->where('consultations.ic', $query)
+                        ->orwhere('consultations.company_employee_id', $query)
+                        ->orderBy('consultations.created_at', 'desc')
+                        ->paginate(5);
+
+                return view('clinic.search_patient', compact('employees', 'status', 'consultations', 'consultation_details','number_of_mc','monthly_limit_exceeded','overall_limit_exceeded','daily_limit_exceeded','dependents_of_employee','daily_spent','overall_spent','monthly_spent'));
+            }
         }
         else{            
-            $employees = [];
-            $status = [];
-
             return view('clinic.search_patient', compact('employees',  'status'));
         }
     }

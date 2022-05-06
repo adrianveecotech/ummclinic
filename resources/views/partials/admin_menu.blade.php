@@ -42,13 +42,19 @@ a:hover{
                 <i class="fa fa-user fa-2x"></i>&nbsp;&nbsp;&nbsp;
                 <p>Employee</p>
             </a>
+        </li>    
+        <li class="c-sidebar-nav-item">
+            <a href="/admin/dependent" class="c-sidebar-nav-link">
+                <i class="fa fa-user fa-2x"></i>&nbsp;&nbsp;&nbsp;
+                <p>Dependent</p>
+            </a>
         </li>         
         <li class="c-sidebar-nav-item">
             <a href="/admin/consultation" class="c-sidebar-nav-link">
                 <i class="fa fa-user-md fa-2x"></i>&nbsp;&nbsp;&nbsp;
                 <p>Consultation History</p>
             </a>
-        </li>          
+        </li>   
         <li class="c-sidebar-nav-item">
             <a href="/admin/payment-history" class="c-sidebar-nav-link">
                 <i class="fa fa-credit-card fa-2x"></i>&nbsp;&nbsp;&nbsp;

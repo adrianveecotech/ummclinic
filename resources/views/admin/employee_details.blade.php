@@ -72,8 +72,9 @@
               <th scope="col" style="width:5%" class="text-center">#</th>
               <th scope="col">Employee Name</th>
               <th scope="col" style="width: 15%">Company</th>
-              <th scope="col" style="width: 10%">Monthly Limit Exceeded</th>
-              <th scope="col" style="width: 10%">Yearly Limit Exceeded</th>
+              <th scope="col" style="width: 15%">Monthly Limit</th>
+              <th scope="col" style="width: 15%">Overall Limit</th>
+              <th scope="col" style="width: 15%">Daily Limit</th>
               <th scope="col" style="width:10%" class="text-center">Status</th>
               <th scope="col" style="width:15%" class="text-center">Action</th>
             </tr>
@@ -87,10 +88,17 @@
                   <td class="text-center">
                     @if($employee->monthly_limit_exceeded == 'false') <span class="badge badge-success">Not Exceeded</span> @endif
                     @if($employee->monthly_limit_exceeded == 'true') <span class="badge badge-danger">Exceeded</span> @endif
+                    @if($employee->monthly_limit_exceeded == 'Limit not set') <span class="badge badge-warning">Limit not set</span> @endif
                   </td>
                   <td class="text-center">
-                    @if($employee->yearly_limit_exceeded == 'false') <span class="badge badge-success">Not Exceeded</span> @endif
-                    @if($employee->yearly_limit_exceeded == 'true') <span class="badge badge-danger">Exceeded</span> @endif
+                    @if($employee->overall_limit_exceeded == 'false') <span class="badge badge-success">Not Exceeded</span> @endif
+                    @if($employee->overall_limit_exceeded == 'true') <span class="badge badge-danger">Exceeded</span> @endif
+                    @if($employee->overall_limit_exceeded == 'Limit not set') <span class="badge badge-warning">Limit not set</span> @endif
+                  </td>
+                  <td class="text-center">
+                    @if($employee->daily_limit_exceeded == 'false') <span class="badge badge-success">Not Exceeded</span> @endif
+                    @if($employee->daily_limit_exceeded == 'true') <span class="badge badge-danger">Exceeded</span> @endif
+                    @if($employee->daily_limit_exceeded == 'Limit not set') <span class="badge badge-warning">Limit not set</span> @endif
                   </td>
                   <td class="text-center">
                     @if($employee->status == 'active') <span class="badge badge-success">Active</span> @endif
@@ -98,6 +106,7 @@
                   </td>
                   <td class="text-center">
                       <button class="btn btn-sm btn-info" data-toggle="modal" data-target="#view_patient_modal{{ $index }}">Details</button>  
+                      <a class="btn btn-sm btn-info" href="{{ url('admin/dependent/new') . '?employee='.$employee->id }}"><i class="fa fa-plus"></i>Register Dependent</a>  
                   </td>
               </tr>
             @endforeach

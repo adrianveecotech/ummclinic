@@ -24,13 +24,15 @@
                     <label for="address">Clinic</label>
                     <select class="form-select" name="clinic" id="clinic">
                       <option value="">Select a clinic</option>
-                      @foreach($clinics as $clinic)
+                      @forelse($clinics as $clinic)
                         @if(Request::get('clinic') && Request::get('clinic') == $clinic->id )
                         <option value="{{$clinic->id}}" selected>{{$clinic->name}}</option>
                         @else
                         <option value="{{$clinic->id}}" >{{$clinic->name}}</option>
                         @endif
-                      @endforeach
+                      @empty
+                      <td colspan="10">No records found.</td> 
+                      @endforelse
                     </select>
               </div>
               <div class="col-2">
@@ -58,7 +60,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  @foreach($outstandings_amount as $index => $outstanding_amount)
+                  @forelse($outstandings_amount as $index => $outstanding_amount)
                     <tr>
                       <th scope="row" class="text-center">{{ $index+1 }}</th>
                       <td>{{ $outstanding_amount->clinic_name }}</td>
@@ -67,7 +69,9 @@
                           <a class="btn btn-sm btn-info" href="/company/outstanding-details?clinic={{ $outstanding_amount->clinic_id }}&month={{ Request::get('month') }}">View</a>  
                       </td>
                     </tr>                 
-                  @endforeach
+                    @empty
+                      <td colspan="10">No records found.</td> 
+                    @endforelse
                 </tbody>
             </table>
         </div>

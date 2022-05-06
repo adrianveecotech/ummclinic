@@ -38,6 +38,12 @@ class ClinicController extends Controller
         }
     }
 
+    public function register(){
+        $clinics = Clinic::whereNull('branch_clinic_id')->orderBy('name','asc')->get();
+
+        return view('admin.register_clinic',compact('clinics'));   
+    }
+
     public function store_clinic_details(Request $request){
         $request->validate([
             'name' => 'required|max:255',
@@ -54,6 +60,9 @@ class ClinicController extends Controller
         $clinics->email = $email;
         $clinics->address = Str::upper($request->input('address'));
         $clinics->contact = $request->input('contact');
+        if($request->input('branch') != 0){
+            $clinics->branch_clinic_id = $request->input('branch');
+        }
 
         $clinics->save();
 

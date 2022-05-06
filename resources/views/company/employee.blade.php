@@ -67,8 +67,9 @@
               <th scope="col">Employee Name</th>
               <th scope="col" style="width: 15%">IC</th>
               <th scope="col" style="width: 15%">Employee ID</th>
-              <th scope="col" style="width: 15%">Monthly Limit Exceeded</th>
-              <th scope="col" style="width: 15%">Yearly Limit Exceeded</th>
+              <th scope="col" style="width: 15%">Monthly Limit</th>
+              <th scope="col" style="width: 15%">Overall Limit</th>
+              <th scope="col" style="width: 15%">Daily Limit</th>
               <th scope="col" style="width:10%" class="text-center">Status</th>
               <th scope="col" style="width:15%" class="text-center">Action</th>
             </tr>
@@ -83,18 +84,30 @@
                   <td class="text-center">
                     @if($employee->monthly_limit_exceeded == 'false') <span class="badge badge-success">Not Exceeded</span> @endif
                     @if($employee->monthly_limit_exceeded == 'true') <span class="badge badge-danger">Exceeded</span> @endif
+                    @if($employee->monthly_limit_exceeded == 'Limit not set') <span class="badge badge-warning">Limit not set</span> @endif
                   </td>
                   <td class="text-center">
-                    @if($employee->yearly_limit_exceeded == 'false') <span class="badge badge-success">Not Exceeded</span> @endif
-                    @if($employee->yearly_limit_exceeded == 'true') <span class="badge badge-danger">Exceeded</span> @endif
+                    @if($employee->overall_limit_exceeded == 'false') <span class="badge badge-success">Not Exceeded</span> @endif
+                    @if($employee->overall_limit_exceeded == 'true') <span class="badge badge-danger">Exceeded</span> @endif
+                  </td>
+                  <td class="text-center">
+                    @if($employee->daily_limit_exceeded == 'false') <span class="badge badge-success">Not Exceeded</span> @endif
+                    @if($employee->daily_limit_exceeded == 'true') <span class="badge badge-danger">Exceeded</span> @endif
+                    @if($employee->daily_limit_exceeded == 'Limit not set') <span class="badge badge-warning">Limit not set</span> @endif
                   </td>
                   <td class="text-center">
                     @if($employee->status == 'active') <span class="badge badge-success">Active</span> @endif
                     @if($employee->status == 'inactive') <span class="badge badge-danger">Inactive</span> @endif
                   </td>
                   <td class="text-center">
-                      <button class="btn btn-sm btn-info" data-toggle="modal" data-target="#edit_employee_modal{{ $index }}">Edit</button>  
-                      <button class="btn btn-sm btn-danger" data-toggle="modal" data-target="#delete_employee_modal{{ $index }}">Delete</button>  
+                    <div class="dropdown">
+                      <button <?php echo 'onclick="openDropDown('.$index.')"'; ?> class="dropbtn">Actions <i class="fa fa-angle-down"></i></button>
+                      <div id="myDropdown[{{$index}}]" class="dropdown-content">
+                        <a href="#" data-toggle="modal" data-toggle="modal" data-target="#edit_employee_modal{{ $index }}">Edit</a>
+                        <a href="#" data-toggle="modal" data-toggle="modal" data-target="#delete_employee_modal{{ $index }}">Delete</a>
+                        <a href="{{ url('company/dependent/new') . '?employee='.$employee->id }}">Register Dependent</a>
+                      </div>
+                    </div>
                   </td>
               </tr>
               <div class="modal fade" id="edit_employee_modal{{ $index }}" tabindex="-1" role="dialog" aria-labelledby="editemployeeModalLabel" aria-hidden="true">
@@ -199,4 +212,30 @@
       </div>
     </div>
 </div>
+@endsection
+
+@section('scripts')
+<script type="text/javascript">
+  function openDropDown(index) {
+      closeDropDown();
+      document.getElementById("myDropdown["+ index +"]").classList.toggle("show");
+      }
+
+      window.onclick = function(event) {
+      if (!event.target.matches('.dropbtn')) {
+          closeDropDown();
+      }
+  }
+
+  function closeDropDown(){
+      var dropdowns = document.getElementsByClassName("dropdown-content");
+          var i;
+          for (i = 0; i < dropdowns.length; i++) {
+          var openDropdown = dropdowns[i];
+          if (openDropdown.classList.contains('show')) {
+              openDropdown.classList.remove('show');
+          }
+      }
+  }
+</script>
 @endsection

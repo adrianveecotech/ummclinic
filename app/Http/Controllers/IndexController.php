@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Consultation;
 use App\Models\Clinic;
 use App\Models\Company;
+use App\Models\Employee;
 use Carbon\Carbon;
 
 class IndexController extends Controller
@@ -71,17 +72,17 @@ class IndexController extends Controller
             ->join('payments', 'consultations.id', 'payments.consultation_id')
             ->join('companys', 'consultations.company_id', 'companys.id')
             ->select(
-                'employees.name as employee_name',
+                'employees.name as patient_name',
                 'companys.name as companys_name',
                 'clinics.name as clinic_name',
                 'consultations.*',
                 'doctors.name as doctor_name',
-                'payments.status as payment_status'
+                'payments.status as payment_status',
+                'consultations.created_at as consultation_created_at'
                 )
             ->where('consultations.clinic_id', Auth::user()->clinic_id)
-            ->orderBy('consultations.created_at', 'desc')
+            ->orderBy('consultation_created_at', 'desc')
             ->paginate(5);
-
         return view('clinic.dashboard', compact('count_today_consultation', 'count_total_consultation', 'count_monthly_consultation', 'today_percent', 'consultations'));
     }
 
@@ -118,21 +119,43 @@ class IndexController extends Controller
         }
 
         $consultations = DB::table('consultations')
-            ->join('employees', 'consultations.ic', 'employees.ic')
+            ->leftJoin('employees','consultations.employee_id','employees.id')
+            ->leftJoin('employees AS e1','employees.employee_id','e1.id')
             ->join('clinics', 'consultations.clinic_id', 'clinics.id')
             ->join('doctors', 'consultations.doctor_id', 'doctors.id')
             ->join('payments', 'consultations.id', 'payments.consultation_id')
             ->select(
                 'employees.name as employee_name',
-                'employees.company_employee_id as employee_id',
+                'employees.category as employee_category',
                 'clinics.name as clinic_name',
                 'consultations.*',
                 'doctors.name as doctor_name',
-                'payments.status as payment_status'
+                'payments.status as payment_status',
+                'e1.company_employee_id as company_employee_id_new'
                 )
             ->where('consultations.company_id', Auth::user()->company_id)
-            ->orderBy('consultations.created_at', 'desc')
-            ->paginate(5);
+            ->orderBy('consultations.created_at', 'desc');
+        // $consultationsDependent = DB::table('consultations')
+        //     ->leftJoin('dependents','consultations.dependent_id','dependents.id')
+        //     ->leftJoin('employees','dependents.employee_id','employees.id')
+        //     ->join('clinics', 'consultations.clinic_id', 'clinics.id')
+        //     ->join('doctors', 'consultations.doctor_id', 'doctors.id')
+        //     ->join('payments', 'consultations.id', 'payments.consultation_id')
+        //     ->select(
+        //         'dependents.name as employee_name',
+        //         'dependents.category as employee_category',
+        //         'clinics.name as clinic_name',
+        //         'consultations.*',
+        //         'doctors.name as doctor_name',
+        //         'payments.status as payment_status',
+        //         'employees.company_employee_id as company_employee_id_new'
+        //         )
+        //     ->where('consultations.company_id', Auth::user()->company_id)
+        //     ->where('consultations.dependent_id','!=','NULL')
+        //     ->orderBy('consultations.created_at', 'desc');
+
+        // $consultations = $consultationsEmployee->union($consultationsDependent);
+        $consultations = $consultations->paginate(5);
 
         return view('company.dashboard', compact('count_today_consultation', 'count_total_consultation', 'count_monthly_consultation', 'count_total_outstanding', 'today_percent', 'consultations'));
     }

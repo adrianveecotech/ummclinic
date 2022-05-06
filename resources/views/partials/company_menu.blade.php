@@ -22,11 +22,16 @@
             </a>
         </li>
 
-        <li class="c-sidebar-nav-title">Employee Management</li>
         <li class="c-sidebar-nav-item">
             <a href="/company/employee" class="c-sidebar-nav-link">
-                <i class="fa fa-home fa-2x"></i>&nbsp;&nbsp;&nbsp;
+                <i class="fa fa-user fa-2x"></i>&nbsp;&nbsp;&nbsp;
                 <p>Employee</p>
+            </a>
+        </li> 
+        <li class="c-sidebar-nav-item">
+            <a href="/company/dependent" class="c-sidebar-nav-link">
+                <i class="fa fa-user fa-2x"></i>&nbsp;&nbsp;&nbsp;
+                <p>Dependent</p>
             </a>
         </li>        
         <li class="c-sidebar-nav-item">
@@ -39,6 +44,12 @@
             <a href="/company/payment" class="c-sidebar-nav-link">
                 <i class="fa fa-money fa-2x"></i>&nbsp;&nbsp;&nbsp;
                 <p>Payment</p>
+            </a>
+        </li>
+        <li class="c-sidebar-nav-item">
+            <a href="/company/invoice" class="c-sidebar-nav-link">
+                <i class="fa fa-file fa-2x"></i>&nbsp;&nbsp;&nbsp;
+                <p>Invoice</p>
             </a>
         </li>
         <li class="c-sidebar-nav-item">

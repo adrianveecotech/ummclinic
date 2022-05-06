@@ -42,6 +42,15 @@
                     <label for="contact">Clinic Contact</label>
                     <input type="text" class="form-control" name="contact" pattern="(\+?6?01)[0-46-9]-*[0-9]{7,8}" value="{{ old('contact') }}" required>
                 </div>
+                <div class="form-group">
+                    <label for="contact">Branch</label>
+                    <select name="branch" class="custom-select">
+                        <option value="0">No branch</option>
+                        @foreach($clinics as $clinic)
+                          <option value="{{$clinic->id}}">{{$clinic->name}}</option>
+                        @endforeach
+                    </select>
+                </div>
                 <button type="submit" class="btn btn-success">Register</button>
             </form>          
         </div>

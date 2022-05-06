@@ -4,7 +4,7 @@
 
 @section('sub_header')
   <li class="breadcrumb-item"><a href="/" class="text-dark">Dashboard</a></li>
-  <li class="breadcrumb-item"><a href="/company/employee" class="text-dark">Employee Details</a></li>
+  <li class="breadcrumb-item"><a href="/admin/employee" class="text-dark">Employee Details</a></li>
   <li class="breadcrumb-item active">Register Employee</li>
 @endsection
 

@@ -139,7 +139,7 @@
                             <tbody>
                                 <tr>
                                 <th class="table-active w-25">Patient Name</th>
-                                <td class="w-25">{{ $consultation->employee_name }}</td>                            
+                                <td class="w-25">{{ $consultation->patient_name }}</td>                            
                                 <th class="table-active w-25">Patient IC</th>
                                 <td class="w-25">{{ $consultation->ic }}</td>
                                 </tr>    
@@ -151,7 +151,7 @@
                                 </tr>
                                 <tr>
                                 <th class="table-active w-25">Consultation Date</th>
-                                <td class="w-25">{{ \Carbon\Carbon::parse($consultation->created_at)->format('d-m-Y') }}</td>
+                                <td class="w-25">{{ \Carbon\Carbon::parse($consultation->consultation_created_at)->format('d-m-Y') }}</td>
                                 <th class="table-active w-25">Payment Status</th>
                                 <td class="w-25">
                                     @if($consultation->payment_status == 'settled') <span class="badge badge-success">Settled</span>@endif

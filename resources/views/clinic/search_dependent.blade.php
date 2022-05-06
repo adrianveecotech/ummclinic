@@ -39,12 +39,7 @@ b{
 
 @section('content')
 <div class="container">
-  @if(Request::get('query') && $employees == null)
-  <div class="alert alert-danger">
-      Invalid Patient. No records found.
-  </div>
-  @endif  
-  @if(Request::get('query') && $employees && $status == 'inactive')
+  @if(Request::get('query') && $dependents && $status == 'inactive')
   <div class="alert alert-danger">
       Inactive Patient.
   </div>
@@ -55,24 +50,20 @@ b{
       <button type="submit" class="btn btn-success mt-3 d-none">Submit</button>
   </div>
   </form>
-  @if($employees != null)
-    <div class="@if($employees == null || $status != 'active') d-none @endif">
+    <div class="@if($dependents == null || $status != 'active') d-none @endif">
       <div class="card mt-3">
         <div class="card-body">
           <div class="row mb-3">
             <div class="col-auto">
-              <a class="btn btn-outline-info" href="{{ url('/clinic/consult', $employees->ic) }}">Consult Now</a>
-            </div>
-            <div class="col-auto">
-              <a class="btn btn-outline-info" href="{{ url('clinic/dependent/new') . '?employee='.$employees->id }}">Register Dependent</a>
+              <a class="btn btn-outline-info" href="{{ url('/clinic/consult', $dependents->ic) }}">Consult Now</a>
             </div>
           </div>
           <div class="card">
             <div class="card-body">
             <div class="row mb-2">
-              @if($daily_limit_exceeded == 'true')
+              @if($overall_limit_exceeded == 'true')
               <div class="col-lg-12">
-                  <div class="alert alert-danger" role="alert"> This employee has exceeded the daily limit. </div>
+                  <div class="alert alert-danger" role="alert"> This employee has exceeded the overall limit. </div>
               </div>
               @endif
               @if($monthly_limit_exceeded == 'true')
@@ -80,45 +71,47 @@ b{
                   <div class="alert alert-danger" role="alert"> This employee has exceeded the monthly limit. </div>
               </div>
               @endif
-              @if($overall_limit_exceeded == 'true')
+              @if($daily_limit_exceeded == 'true')
               <div class="col-lg-12">
-                  <div class="alert alert-danger" role="alert"> This employee has exceeded the overall limit. </div>
+                  <div class="alert alert-danger" role="alert"> This employee has exceeded the daily limit. </div>
               </div>
-            </div>
               @endif
-              <h2 class="card-title">Employee</h2>
-              <div class="row">
+            </div>
+              <h2 class="card-title">Dependent</h2>
+              <h4>Type : {{ucfirst($dependents->category)}}</h4>
+              <div class="row mt-3">
                 <div class="col">
-                   <p><strong>Patient Name :</strong><br> {{ $employees->name }}</p>
+                   <p><strong>Patient Name :</strong><br> {{ $dependents->name }}</p>
                 </div>            
                 <div class="col">
-                   <p><strong>Patient IC :</strong><br> {{ $employees->ic }}</p>
+                   <p><strong>Patient IC :</strong><br> {{ $dependents->ic }}</p>
                 </div>            
                 <div class="col">
-                   <p><strong>Date of Birth :</strong><br> {{ \Carbon\Carbon::parse($employees->dob)->format('d-m-Y') }}</p>
+                   <p><strong>Date of Birth :</strong><br> {{ \Carbon\Carbon::parse($dependents->dob)->format('d-m-Y') }}</p>
                 </div>
               </div>
               <div class="row mt-3">
                 <div class="col">
-                  <p><strong>Patient Address :</strong><br> {{ $employees->address }}</p>
+                  <p><strong>Patient Address :</strong><br> {{ $dependents->address }}</p>
                 </div>       
+                @if(!isset($dependents->category))         
                 <div class="col">
-                  <p><strong>Company :</strong><br> {{ $employees->company_name }}</p>
+                  <p><strong>Company :</strong><br> {{ $dependents->company_name }}</p>
                 </div>                
                 <div class="col">
-                  <p><strong>Employee ID :</strong><br> {{ $employees->company_employee_id }}</p>
+                  <p><strong>Employee ID :</strong><br> {{ $dependents->company_employee_id }}</p>
                 </div>
+                @endif
               </div>
               <div class="row mt-3">
                 <div class="col">
-                  <p><strong>Daily Limit :</strong><br><span style="@if($daily_limit_exceeded == 'true') color: red @endif"><strong>{{ $daily_spent }}</strong></span> / {{ $employees->daily_limit }}</p>
-                </div>    
-                            
+                  <p><strong>Overall Limit :</strong><br> <span style="@if($overall_limit_exceeded == 'true') font-weight: bold; color: red; @endif">{{ $overall_spent }}</span> / {{ $employee_of_dependent->overall_limit }} ( {{ $employee_of_dependent->overall_limit_start_date }} - {{ $employee_of_dependent->overall_limit_end_date }} )</p>
+                </div>
                 <div class="col">
-                  <p><strong>Monthly Limit :</strong><br><span style="@if($monthly_limit_exceeded == 'true') color: red @endif"><strong>{{ $monthly_spent }}</strong></span> / {{ $employees->monthly_limit }} ( {{ $employees->monthly_limit_start_date }} - {{ $employees->monthly_limit_end_date }} )</p>
-                </div>    
+                  <p><strong>Monthly Limit :</strong><br> <span style="@if($monthly_limit_exceeded == 'true') font-weight: bold; color: red; @endif">{{ $monthly_spent }}</span> / {{ $dependents->monthly_limit }} ( {{ $dependents->monthly_limit_start_date }} - {{ $employee_of_dependent->monthly_limit_end_date }} )</p>
+                </div>
                 <div class="col">
-                  <p><strong>Overall Limit :</strong><br><span style="@if($overall_limit_exceeded == 'true') color: red @endif"><strong>{{ $overall_spent }}</strong></span> / {{ $employees->overall_limit }} ( {{ $employees->overall_limit_start_date }} - {{ $employees->overall_limit_end_date }} )</p>
+                  <p><strong>Daily Limit :</strong><br> <span style="@if($daily_limit_exceeded == 'true') font-weight: bold; color: red; @endif">{{ $daily_spent }}</span> / {{ $dependents->daily_limit }}</p>
                 </div>
               </div>
               <div class="row mt-3">
@@ -126,7 +119,7 @@ b{
                   <p><strong>Total MC taken :</strong><br> {{ $number_of_mc }}</p>
                 </div> 
                 <div class="col">
-                  <p><strong>Status :</strong><br> {{ ucfirst($employees->status) }}</p>
+                  <p><strong>Status :</strong><br> {{ ucfirst($dependents->status) }}</p>
                 </div>  
                 <div class="col">
                 </div>                
@@ -135,36 +128,32 @@ b{
           </div>
           <div class="card">
             <div class="card-body">
-              <h2 class="card-title">Dependents</h2>
-              @if(count($dependents_of_employee) == '0') No records found. @endif
-              <table class="table table-bordered table-hover bg-white @if(count($dependents_of_employee) == '0') d-none @endif" id="dependents_table">
+              <h2 class="card-title">Employee</h2>
+              <table class="table table-bordered table-hover bg-white" id="employees_table">
                   <thead>
                     <tr>
-                      <th scope="col" style="width:5%" class="text-center">#</th>
-                      <th scope="col" style="width: 15%">Name</th>
+                      <th scope="col" style="width: 25%">Name</th>
                       <th scope="col">IC</th>
                       <th scope="col" style="width: 10%">Contact</th>
-                      <th scope="col" style="width: 10%">Category</th>
+                      <th scope="col" style="width: 10%">Employee ID</th>
+                      <th scope="col" style="width: 25%">Company</th>
                       <th scope="col" style="width:10%" class="text-center">Action</th>
                     </tr>
                   </thead>
                   <tbody>
-                    @foreach($dependents_of_employee as $index => $dependent)
                       <tr>
-                        <th scope="row" class="text-center">{{ $index+1 }}</th>
-                        <td>{{ $dependent['name'] }}</td>
-                        <td>{{ $dependent['ic'] }}</td>
-                        <td>{{ $dependent['contact'] }}</td>
-                        <td>{{ ucfirst($dependent['category']) }}</td>
+                        <td>{{ $employee_of_dependent->name }}</td>
+                        <td>{{ $employee_of_dependent->ic }}</td>
+                        <td>{{ $employee_of_dependent->contact }}</td>
+                        <td>{{ $employee_of_dependent->company_employee_id }}</td>
+                        <td>{{ $employee_of_dependent->company->name }}</td>
                         <td class="text-center">
-                            <button class="btn btn-sm btn-info" data-toggle="modal" data-target="#view_dependent_modal{{ $index }}">View</button>  
+                            <button class="btn btn-sm btn-info" data-toggle="modal" data-target="#view_employee_modal">View</button>  
                         </td>
                       </tr>                 
-                    @endforeach
                   </tbody>
               </table>
-              @foreach($dependents_of_employee as $index => $dependent)
-              <div class="modal fade" id="view_dependent_modal{{ $index }}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+              <div class="modal fade" id="view_employee_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
                 <div class="modal-dialog modal-lg">
                     <div class="modal-content">
                         <div class="modal-header">
@@ -175,28 +164,22 @@ b{
                             <tbody>
                               <tr>
                                 <th class="table-active w-25">Dependent Name</th>
-                                <td class="w-25">{{ $dependent['name'] }}</td>
-                                <th class="table-active w-25">Created At</th>
-                                <td class="w-25">{{ \Carbon\Carbon::parse($dependent['created_at'])->format('d-m-Y') }}</td>
-                              </tr>                              
-                              <tr>
-                                <th class="table-active w-25">Category</th>
-                                <td class="w-25">{{ ucfirst($dependent['category']) }}</td>
+                                <td class="w-25">{{ $employee_of_dependent->name }}</td>
                                 <th class="table-active w-25">IC</th>
-                                <td class="w-25">RM {{ $dependent['ic'] }}</td>
+                                <td class="w-25">{{ $employee_of_dependent->ic }}</td>
                               </tr>  
                               <tr>
-                                <th class="table-active w-25">Date of Birth</th>
-                                <td class="w-25">{{ $dependent['dob'] }}</td>
                                 <th class="table-active w-25">Contact</th>
-                                <td class="w-25">{{ $dependent['contact'] }}</td>
-                              </tr>      
+                                <td class="w-25">{{ $employee_of_dependent->contact }}</td>
+                                <th class="table-active w-25">Company Employee ID</th>
+                                <td class="w-25">{{ $employee_of_dependent->company_employee_id }}</td>
+                              </tr>     
                               <tr>
-                                <th class="table-active w-25">Address</th>
-                                <td class="w-25">{{ $dependent['address'] }}</td>
-                                <th class="table-active w-25">Status</th>
-                                <td class="w-25">{{ $dependent['status'] }}</td>
-                              </tr>                                 
+                                <th class="table-active w-25">Date Joined</th>
+                                <td class="w-25">{{ $employee_of_dependent->date_joined }}</td>
+                                <th class="table-active w-25">Department</th>
+                                <td class="w-25">{{ $employee_of_dependent->department }}</td>
+                              </tr>                                
                             </tbody>
                           </table>
                         </div>
@@ -206,7 +189,6 @@ b{
                     </div>
                 </div>
               </div>   
-              @endforeach
             </div>
           </div>
           <div class="card">
@@ -247,13 +229,7 @@ b{
                         </div>
                         <div class="modal-body">
                           <table class="table table-bordered" id="details_table">
-                            <tbody>
-                              <tr>
-                                <th class="table-active w-25">Patient Name</th>
-                                <td class="w-25">{{ $consultation_detail->employee_name }}</td>
-                                <th class="table-active w-25">Consultation Date</th>
-                                <td class="w-25">{{ \Carbon\Carbon::parse($consultation_detail->created_at)->format('d-m-Y') }}</td>
-                              </tr>                              
+                            <tbody>                         
                               <tr>
                                 <th class="table-active w-25">Consultation Doctor</th>
                                 <td class="w-25">{{ $consultation_detail->doctor_name }}</td>
@@ -275,6 +251,8 @@ b{
                                   From {{ $consultation_detail->mc_startdate}} to {{$consultation_detail->mc_enddate}}
                                   @endif
                                 </td>
+                                <th class="table-active w-25">Consultation Date</th>
+                                <td class="w-25">{{ \Carbon\Carbon::parse($consultation_detail->created_at)->format('d-m-Y') }}</td>
                               </tr>                               
                               <tr>
                                 <td id="dash_description_id" colspan="4">
@@ -295,6 +273,5 @@ b{
         </div>
       </div>
     </div>
-    @endif
 </div>
 @endsection

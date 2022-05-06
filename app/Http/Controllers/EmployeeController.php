@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Employee;
 use App\Models\Company;
 use App\Models\Consultation;
+use App\Models\Dependent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -35,10 +36,8 @@ class EmployeeController extends Controller
                 ->paginate(10);
 
             $consultations = Consultation::all();
-
         }        
-        
-        if($request->get('status')){
+        else if($request->get('status')){
             $status = $request->get('status');
 
             $employees = DB::table('employees')
@@ -68,17 +67,49 @@ class EmployeeController extends Controller
 
         }
         foreach ($employees as $key => $employee) {
-            $monthly_spent = Consultation::where('ic',$employee->ic)->whereMonth('created_at',date('m') )->sum('price');
-            if($monthly_spent > $employee->monthly_limit)
-                $employees[$key]->monthly_limit_exceeded = 'true';
-            else
-                $employees[$key]->monthly_limit_exceeded = 'false';
-
-            $yearly_spent = Consultation::where('ic',$employee->ic)->whereYear('created_at',date('Y') )->sum('price');
-            if($yearly_spent > $employee->yearly_limit)
-                $employees[$key]->yearly_limit_exceeded = 'true';
-            else
-                $employees[$key]->yearly_limit_exceeded = 'false';
+            $monthly_spent = Consultation::where('id',$employee->id)->whereYear('created_at',date('Y') )->whereMonth('created_at',date('m') )->sum('price');
+            if($employee->monthly_limit_start_date <= date('Y-m-d') && date('Y-m-d') <= $employee->monthly_limit_end_date){
+                if($monthly_spent > $employee->monthly_limit)
+                    $employees[$key]->monthly_limit_exceeded = 'true';
+                else
+                    $employees[$key]->monthly_limit_exceeded = 'false';
+            }else{
+                $employees[$key]->monthly_limit_exceeded = 'Limit not set';
+            }
+            if($employee->category == 'employee'){
+                $employees_all = Employee::where('employee_id',$employee->id)->pluck('id')->toArray();
+                $overall_spent = Consultation::whereIn('employee_id',$employees_all)->whereBetween('created_at', [date($employee->overall_limit_start_date), date($employee->overall_limit_end_date)])->sum('price');
+                if($employee->overall_limit_start_date <= date('Y-m-d') && date('Y-m-d') <= $employee->overall_limit_end_date){
+                    if($overall_spent > $employee->overall_limit)
+                        $employees[$key]->overall_limit_exceeded = 'true';
+                    else
+                        $employees[$key]->overall_limit_exceeded = 'false';
+                }else{
+                    $employees[$key]->overall_limit_exceeded = 'Limit not set';
+                }
+            }else{
+                $employee_of_dependent = Employee::where('id',$employee->employee_id)->first();
+                $employees_all = Employee::where('employee_id',$employee_of_dependent->id)->pluck('id')->toArray();
+                $overall_spent = Consultation::whereIn('employee_id',$employees_all)->whereBetween('created_at', [date($employee_of_dependent->overall_limit_start_date), date($employee_of_dependent->overall_limit_end_date)])->sum('price');
+                if($employee_of_dependent->overall_limit_start_date <= date('Y-m-d') && date('Y-m-d') <= $employee_of_dependent->overall_limit_end_date){
+                    if($overall_spent > $employee_of_dependent->overall_limit)
+                        $employees[$key]->overall_limit_exceeded = 'true';
+                    else
+                        $employees[$key]->overall_limit_exceeded = 'false';
+                }else{
+                    $employees[$key]->overall_limit_exceeded = 'Limit not set';
+                }
+            }
+            
+            if($employee->daily_limit){
+                $daily_spent = Consultation::where('ic',$employee->ic)->whereYear('created_at',date('Y') )->whereMonth('created_at',date('m') )->whereDay('created_at',date('d'))->sum('price');
+                if($daily_spent > $employee->daily_limit)
+                    $employees[$key]->daily_limit_exceeded = 'true';
+                else
+                    $employees[$key]->daily_limit_exceeded = 'false';
+            }else{
+                $employees[$key]->daily_limit_exceeded = 'Limit not set';
+            }
         }   
         return view('admin.employee_details', compact('employees', 'consultations','companies'));
     }
@@ -93,6 +124,7 @@ class EmployeeController extends Controller
                 ->where('name', 'LIKE', '%'.$search.'%')
                 ->orwhere('ic', 'LIKE', $search)
                 ->orwhere('company_employee_id', 'LIKE', $search)
+                ->where('employees.category','=','employee')
                 ->paginate(10);
         }
         else if($request->get('status')){
@@ -100,25 +132,61 @@ class EmployeeController extends Controller
 
             $employees = DB::table('employees')
                 ->where('company_id', Auth::user()->company_id)
+                ->where('employees.category','=','employee')
                 ->where('status', 'LIKE', $status)
                 ->paginate(10);
         }
         else{
             $employees = Employee::where('company_id', Auth::user()->company_id)
+                ->where('employees.category','=','employee')
                 ->paginate(10);
         }
         foreach ($employees as $key => $employee) {
-            $monthly_spent = Consultation::where('ic',$employee->ic)->whereMonth('created_at',date('m') )->sum('price');
-            if($monthly_spent > $employee->monthly_limit)
-                $employees[$key]->monthly_limit_exceeded = 'true';
-            else
-                $employees[$key]->monthly_limit_exceeded = 'false';
+            $monthly_spent = Consultation::where('id',$employee->id)->whereYear('created_at',date('Y') )->whereMonth('created_at',date('m') )->sum('price');
+            if($employee->monthly_limit_start_date <= date('Y-m-d') && date('Y-m-d') <= $employee->monthly_limit_end_date){
+                if($monthly_spent > $employee->monthly_limit)
+                    $employees[$key]->monthly_limit_exceeded = 'true';
+                else
+                    $employees[$key]->monthly_limit_exceeded = 'false';
+            }else{
+                $employees[$key]->monthly_limit_exceeded = 'Limit not set';
+            }
 
-            $yearly_spent = Consultation::where('ic',$employee->ic)->whereYear('created_at',date('Y') )->sum('price');
-            if($yearly_spent > $employee->yearly_limit)
-                $employees[$key]->yearly_limit_exceeded = 'true';
-            else
-                $employees[$key]->yearly_limit_exceeded = 'false';
+            if($employee->category == 'employee'){
+                $employees_all = Employee::where('employee_id',$employee->id)->pluck('id')->toArray();
+                $overall_spent = Consultation::whereIn('employee_id',$employees_all)->whereBetween('created_at', [date($employee->overall_limit_start_date), date($employee->overall_limit_end_date)])->sum('price');
+                if($employee->overall_limit_start_date <= date('Y-m-d') && date('Y-m-d') <= $employee->overall_limit_end_date){
+                    if($overall_spent > $employee->overall_limit)
+                        $employees[$key]->overall_limit_exceeded = 'true';
+                    else
+                        $employees[$key]->overall_limit_exceeded = 'false';
+                }else{
+                    $employees[$key]->overall_limit_exceeded = 'Limit not set';
+                }
+            }else{
+                $employee_of_dependent = Employee::where('id',$employee->employee_id)->first();
+                $employees_all = Employee::where('employee_id',$employee_of_dependent->id)->pluck('id')->toArray();
+                $overall_spent = Consultation::whereIn('employee_id',$employees_all)->whereBetween('created_at', [date($employee_of_dependent->overall_limit_start_date), date($employee_of_dependent->overall_limit_end_date)])->sum('price');
+                if($employee->overall_limit_start_date <= date('Y-m-d') && date('Y-m-d') <= $employee->overall_limit_end_date){
+                    if($overall_spent > $employee_of_dependent->overall_limit)
+                        $employees[$key]->overall_limit_exceeded = 'true';
+                    else
+                        $employees[$key]->overall_limit_exceeded = 'false';
+                }else{
+                    $employees[$key]->overall_limit_exceeded = 'Limit not set';
+                }
+            }
+            
+            if($employee->daily_limit){
+                $daily_spent = Consultation::where('ic',$employee->ic)->whereYear('created_at',date('Y') )->whereMonth('created_at',date('m') )->whereDay('created_at',date('d'))->sum('price');
+                if($daily_spent > $employee->daily_limit)
+                    $employees[$key]->daily_limit_exceeded = 'true';
+                else
+                    $employees[$key]->daily_limit_exceeded = 'false';
+            }else{
+                $employees[$key]->daily_limit_exceeded = 'Limit not set';
+            }
+            
         }   
         return view('company.employee', compact('employees'));
     }
@@ -157,8 +225,15 @@ class EmployeeController extends Controller
             'contact' => 'required|max:255',
             'dob' => 'required',
             'company_employee_id' => 'required|unique:employees',
+            'date_joined' => 'required',
+            'department' => 'required',
             'monthly_limit' => 'required',
-            'yearly_limit' => 'required'
+            'monthly_limit_start_date' => 'required',
+            'monthly_limit_end_date' => 'required',
+            'overall_limit' => 'required',
+            'overall_limit_start_date' => 'required',
+            'overall_limit_end_date' => 'required',
+            'daily_limit' => 'required',
         ]);
 
         $employees = new Employee();
@@ -169,16 +244,25 @@ class EmployeeController extends Controller
         $employees->contact = $request->input('contact');
         $employees->dob = $request->input('dob');
         $employees->company_employee_id = $request->input('company_employee_id');
-        $employees->monthly_limit = $request->input('monthly_limit');
-        $employees->yearly_limit = $request->input('yearly_limit');
         if(Auth::user()->type == 'Admin' || Auth::user()->type == 'clinic'){
             $employees->company_id = $request->company;
         }
         else if(Auth::user()->type == 'company'){
             $employees->company_id = $request->input('company_id');
         }
+        // if($request->monthly_limit_distributed == 'true')
+        //     $employees->monthly_limit_distributed = 1;
+        // else
+        //     $employees->monthly_limit_distributed = 0;
         $employees->date_joined = $request->input('date_joined');
         $employees->department = $request->input('department');
+        $employees->monthly_limit = $request->input('monthly_limit');
+        $employees->monthly_limit_start_date = $request->input('monthly_limit_start_date');
+        $employees->monthly_limit_end_date = $request->input('monthly_limit_end_date');
+        $employees->overall_limit = $request->input('overall_limit');
+        $employees->overall_limit_start_date = $request->input('overall_limit_start_date');
+        $employees->overall_limit_end_date = $request->input('overall_limit_end_date');
+        $employees->daily_limit = $request->input('daily_limit');
         $employees->save();
         return back()->with('message', 'Employee created successfully.');
     }
@@ -193,7 +277,7 @@ class EmployeeController extends Controller
         $employees->dob = $request->input('dob');
         $employees->status = $request->input('status');
         $employees->monthly_limit = $request->input('monthly_limit');
-        $employees->yearly_limit = $request->input('yearly_limit');
+        $employees->overall_limit = $request->input('overall_limit');
         $employees->date_joined = $request->input('date_joined');
         $employees->department = $request->input('department');
 

@@ -127,7 +127,7 @@
                           </tr>
                           <tr>
                             <th class="table-active w-25">Consultation Date</th>
-                            <td class="w-25">{{ \Carbon\Carbon::parse($consultation->created_at)->format('d-m-Y') }}</td>
+                            <td class="w-25">{{ \Carbon\Carbon::parse($consultation->created_at)->format('Y-m-d') }}</td>
                             <th class="table-active w-25">Payment Status</th>
                             <td class="w-25">
                                 @if($consultation->payment_status == 'settled') <span class="badge badge-success">Settled</span>@endif
@@ -139,12 +139,28 @@
                             <td class="w-25">{{ $consultation->clinic_admin }}</td>                            
                             <th class="table-active w-25">Created At</th>
                             <td class="w-25">{{ $consultation->created_at }}</td>
+                          </tr>       
+                          <tr>
+                            <th class="table-active w-25">MC Start Date</th>
+                            <td class="w-25">{{ $consultation->mc_startdate }}</td>                            
+                            <th class="table-active w-25">MC End Date</th>
+                            <td class="w-25">{{ $consultation->mc_enddate }}</td>
                           </tr>                              
                         </tbody>
                       </table>
                       <div class="card" id="amount_card">
                         <div class="card-body">
-                            <strong>Total Amount: RM </strong><strong>{{ number_format((float)($consultation->price), 2) }}</strong>
+                        <strong>Total Amount:</strong> RM{{ number_format((float)($consultation->price), 2) }}
+                        <br>
+                        <strong>Diagnosis:</strong> {{$consultation->description}}
+                        <br>
+                        <strong>Medications:</strong>
+                        @foreach($medications as $medication)
+                          @if($medication->consultation_id == $consultation->id)
+                            {{$medication->name}} - {{$medication->quantity}}{{$medication->unit}}
+                          <br>
+                          @endif
+                        @endforeach
                         </div>
                     </div>  
                     </div>

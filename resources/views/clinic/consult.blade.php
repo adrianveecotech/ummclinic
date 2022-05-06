@@ -32,12 +32,17 @@ td { width: 25vw; }
 
 @section('content')
 <div class="container">
+    @if($employees->count() == 0)
+        <div class="alert alert-danger">
+            Invalid Patient. No patient found.
+        </div>
+    @endif 
   @foreach($employees as $employee)
     <div class="card">
         <div class="card-body">
             <div class="card">
                 <div class="card-body">
-                    <h2 class="card-title">Patient Details</h2>
+                    <h2 class="card-title">@if(isset($employee->category)) Dependent Details @else Employee Details @endif</h2>
                     <div class="row">
                         <div class="col">
                             <p><strong>Patient Name :</strong><br> {{ $employee->name }}</p>
@@ -49,17 +54,34 @@ td { width: 25vw; }
                             <p><strong>Date of Birth :</strong><br> {{ $employee->dob }}</p>
                         </div>
                     </div>
+                    @if(isset($employee->category))
                     <div class="row mt-3">
                         <div class="col">
-                            <p><strong>Patient Address :</strong><br> {{ $employee->address }}</p>
+                            <p><strong>Employee Name :</strong><br> {{ $employee->employee_name }}</p>
                         </div>                
                         <div class="col">
-                            <p><strong>Company :</strong><br> {{ $employee->company_name }}</p>
+                            <p><strong>Employee Company :</strong><br> {{ $employee->company_name }}</p>
                         </div>                
                         <div class="col">
                             <p><strong>Employee ID :</strong><br> {{ $employee->company_employee_id }}</p>
                         </div>
                     </div>
+                    <div class="row mt-3">
+                            <p><strong>Patient Address :</strong><br> {{ $employee->address }}</p>
+                    </div>
+                    @else
+                        <div class="row mt-3">
+                            <div class="col">
+                                <p><strong>Patient Address :</strong><br> {{ $employee->address }}</p>
+                            </div>                
+                            <div class="col">
+                                <p><strong>Company :</strong><br> {{ $employee->company_name }}</p>
+                            </div>                
+                            <div class="col">
+                                <p><strong>Employee ID :</strong><br> {{ $employee->company_employee_id }}</p>
+                            </div>
+                        </div>
+                    @endif
                 </div>
             </div>
             <div class="card">
@@ -82,7 +104,7 @@ td { width: 25vw; }
                                   </select>
                             </div>
                             <div class="col">
-                                <strong><label for="price">Price</label><span style="color:red">*</span></strong>
+                                <strong><label for="price">Price</label></strong>
                                 <div class="input-group mb-3">
                                     <div class="input-group-prepend">
                                       <span class="input-group-text" id="basic-addon1">RM</span>
@@ -102,7 +124,7 @@ td { width: 25vw; }
                             </div>
                         </div>
                         <br>
-                        <strong><label for="description">Diagnosis</label><span style="color:red">*</span></strong>
+                        <strong><label for="description">Diagnosis</label></strong>
                         <textarea id="description" name="description" rows="10" class="form-control"></textarea><br>
                         <strong><label id="medication_details">Mediciation Details</label></strong>
                         <div class="row">
@@ -145,19 +167,16 @@ td { width: 25vw; }
                         <br>
                         <div>
                         <strong><label>MC</label></strong><br>
-                        <div class="row">
-                            <div class="col-2">
-                                <strong><label for="mc_startdate">Start Date</label></strong>
-                                <input type="date" id="mc_startdate" name="mc_startdate" class="form-control">
-                            </div>
-                            <div class="col-2">
-                                <strong><label for="mc_enddate">End Date</label></strong>
-                                <input type="date" id="mc_enddate" name="mc_enddate" class="form-control">
-                            </div>
+                        <div class="col-2">
+                            <input type="checkbox" id="no_mc" name="no_mc" value="no_mc" checked >
+                            <label for="no_mc"> No MC</label><br>
+                        </div>
+                        <div class="row" id="divMCDate">
+
                         </div>
                         </div>  
                         <br>
-                        <strong><label for="clinic_admin">Admin Name</label><span style="color:red">*</span></strong>
+                        <strong><label for="clinic_admin">Admin Name</label></strong>
                         <input type="text" class="form-control" id="clinic_admin" name="clinic_admin">
                         <br>
                         <br>
@@ -182,6 +201,18 @@ td { width: 25vw; }
     $(document).ready(function () {
 
     });
+
+    const checkbox = document.getElementById('no_mc')
+
+    checkbox.addEventListener('change', (event) => {
+    if (event.currentTarget.checked) {
+        $('#divMCDate').empty();
+    } else {
+        $('#divMCDate').empty();
+        $('#divMCDate').append('<div class="col-2"><strong><label for="mc_startdate">Start Date</label></strong><input type="date" id="mc_startdate" name="mc_startdate" class="form-control" required></div><div class="col-2"><strong><label for="mc_enddate">End Date</label></strong><input type="date" id="mc_enddate" name="mc_enddate" class="form-control" required></div>');
+    }
+    })
+
     var data = [];
     $("#formConsultation").submit( function(eventObj) {
         var oTable = document.getElementById('medicationTable');

@@ -1,10 +1,18 @@
 @extends('layouts.admin')
 
+@if(Request::get('group_by') == 'company')
+@section('pageTitle', 'Admin :: Outstanding Payment')
+@else
 @section('pageTitle', 'Admin :: Payment History')
+@endif
 
 @section('sub_header')
 <li class="breadcrumb-item"><a href="/">Dashboard</a></li>
+@if(Request::get('group_by') == 'company')
+<li class="breadcrumb-item active">Outstanding Payment</li>
+@else
 <li class="breadcrumb-item active">Payment History</li>
+@endif
 @endsection
 
 @section('styles')
@@ -119,10 +127,12 @@
                 <thead>
                   <tr>
                     <th scope="col" style="width:5%" class="text-center">#</th>
-                    <th scope="col" style="width: 15%">IC</th>
-                    <th scope="col" style="width: 15%">Clinic Name</th>
-                    <th scope="col" style="width: 10%">Date</th>
+                    <th scope="col" style="width: 7%">IC</th>
+                    <th scope="col" style="width: 21%">Clinic Name</th>
+                    <th scope="col" style="width: 21%">Company Name</th>
+                    <th scope="col" style="width: 7%">Date</th>
                     <th scope="col" style="width: 7%">Amount</th>
+                    <th scope="col" style="width: 5%">Status</th>
                     <th scope="col" style="width:5%" class="text-center">Action</th>
                   </tr>
                 </thead>
@@ -132,14 +142,29 @@
                         <th scope="row" class="text-center">{{ $index+1 }}</th>
                         <td>{{ $payment->ic }}</td>
                         <td>{{ $payment->clinic_name }}</td>
+                        <td>{{ $payment->company_name }}</td>
                         <td>{{ \Carbon\Carbon::parse($payment->created_at)->format('d-m-Y') }}</td>
                         <td>RM {{ number_format((float)($payment->amount), 2) }}</td>
                         <td class="text-center">
-                            <button class="btn btn-sm btn-info" data-toggle="modal" data-target="#view_consultation_details_modal{{ $index }}">View</button>  
+                            @if($payment->status == 'settled') <span class="badge badge-success">Settled</span> @endif
+                            @if($payment->status == 'unsettled') <span class="badge badge-danger">Unsettled</span> @endif
+                        </td>
+                        <td class="text-center">
+                        <div class="dropdown">
+                            <button <?php echo 'onclick="openDropDown('.$index.')"'; ?> class="dropbtn">Actions <i class="fa fa-angle-down"></i></button>
+                            <div id="myDropdown[{{$index}}]" class="dropdown-content">
+                                <a href="#" data-toggle="modal" data-target="#view_consultation_details_modal{{ $index }}">View</a>
+                                @if($payment->status == 'unsettled') 
+                                    <a href="#">Processing</a>
+                                    <a href="" data-toggle="modal" data-target="#billing_modal{{ $index }}">Settled</a>
+                                @endif
+                            </div>
+                        </div>
+                            
                         </td>
                     </tr>        
                     @empty
-                        <br><br> No records found.
+                        <td colspan="10">No records found.</td> 
                   @endforelse
                 </tbody>
             </table>
@@ -191,7 +216,39 @@
                     </div>
                 </div>
             </div> 
+            <div class="modal fade" id="billing_modal{{ $index }}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header" style="font-size:17px !important;">
+                            <strong>Billing</strong>
+                        </div>
+                        <form action="{{ url('admin/payment/billing', $payment->id) }}" method="POST">
+                            @csrf
+                            <div class="modal-body">
+                            <div class="form-group">
+                                <strong><label for="amount">Amount</label></strong>
+                                <div class="input-group mb-3">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text" id="basic-addon1">RM</span>
+                                </div>
+                                <input type="number" class="form-control" name="amount" min="1" step="0.01" pattern="\$?(\d)+(\.\d\d)?" value="{{ number_format((float)($payment->amount), 2) }}">
+                            </div>
+                            </div>
+                                <div class="form-group">
+                                <strong><label for="reference">Billing Reference: </label></strong>
+                                <textarea class="form-control" name="reference" rows="3" placeholder="Payment Details/Reference No.">{{ $payment->reference }}</textarea>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-success">Submit</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>  
             @endforeach
+            
             @elseif(Request::get('group_by') == 'company')
             <table class="table table-bordered table-hover bg-white" id="payment_table">
                 <thead>
@@ -199,6 +256,7 @@
                     <th scope="col" style="width:5%" class="text-center">#</th>
                     <th scope="col" style="width: 15%">Company</th>
                     <th scope="col" style="width: 10%">Amount</th>
+                    <th scope="col" style="width:5%" class="text-center">Action</th>    
                   </tr>
                 </thead>
                 <tbody>
@@ -207,9 +265,12 @@
                         <th scope="row" class="text-center">{{ $index+1 }}</th>
                         <td>{{ $payment->company_name }}</td>
                         <td>RM {{number_format((float)$payment->total_amount, 2, '.', '')}}</td>
+                        <td class="text-center">
+                            <a class="btn btn-sm btn-info" href="outstanding-monthly/{{$payment->company_id}}">View</a>  
+                        </td>
                     </tr>        
                     @empty
-                        <br><br><br><br> No records found.
+                    <td colspan="4">No records found.</td> 
                   @endforelse
                 </tbody>
             </table>
@@ -222,13 +283,36 @@
 @section('scripts')
 <script type="text/javascript">
     var allPayments = <?php echo $allPayments ?>;
+
+    function openDropDown(index) {
+        closeDropDown();
+        document.getElementById("myDropdown["+ index +"]").classList.toggle("show");
+        }
+
+        window.onclick = function(event) {
+        if (!event.target.matches('.dropbtn')) {
+            closeDropDown();
+        }
+    }
+
+    function closeDropDown(){
+        var dropdowns = document.getElementsByClassName("dropdown-content");
+            var i;
+            for (i = 0; i < dropdowns.length; i++) {
+            var openDropdown = dropdowns[i];
+            if (openDropdown.classList.contains('show')) {
+                openDropdown.classList.remove('show');
+            }
+        }
+    }
+
     function exportCsvAll(){
         let csvContent = "data:text/csv;charset=utf-8,";
         csvContent += "Payment History \r\n";
 
         csvContent += "IC,Clinic Name, Date, Amount\r\n";
         allPayments.forEach(payment => {
-            csvContent += payment.ic + "," +  payment.clinic_name + "," + payment.created_at + "," + payment.amount + "\r\n";
+            csvContent += payment.ic + "," +  payment.clinic_name + "," + payment.created_at + "," + payment.amount.toFixed(2) + "\r\n";
         });
         var encodedUri = encodeURI(csvContent);
         var link = document.createElement("a");
@@ -239,6 +323,8 @@
     }
 
     function exportCsvCompany(){
+        var paymentDetails = <?php echo json_encode($paymentDetails) ?>;
+        var paymentsWithDetails = <?php echo json_encode($paymentsWithDetails) ?>;
         let csvContent = "data:text/csv;charset=utf-8,";
         csvContent += "Company Outstanding Amount \r\n";
         url_string = window.location.href;
@@ -250,8 +336,22 @@
             csvContent += "\r\n";
         csvContent += "Company Name, Amount\r\n";
         allPayments.forEach(payment => {
-            csvContent += payment.company_name + "," + "RM " + payment.total_amount + "\r\n";
-        });
+            csvContent += "\r\n" +  payment.company_name + "," + "RM " + payment.total_amount.toFixed(2);
+            csvContent += "\r\nIC, Name, Clinic Name, Diagnosis, MC, Amount, Date\r\n";
+            paymentDetailsFiltered = paymentsWithDetails.filter(o => o.company_id == payment.company_id);
+            paymentDetailsFiltered.forEach(detail => {
+                date = (new Date(Date.parse(detail.payment_created_at)));
+                created = date.getFullYear() + '-' +  date.getMonth() + '-' + date.getDate();
+                var mc = '-';
+                if(detail.mc_startdate != null){
+                    mc = detail.mc_startdate + ' - ' + detail.mc_enddate;
+                }
+                description = detail.description.replace(/(\r\n|\n|\r)/gm, ";");
+                csvContent +=  detail.ic + "," + detail.name + "," + detail.clinic_name + "," + description + "," + mc  + "," + "RM " + detail.amount.toFixed(2) + "," + created + "\r\n";
+            });
+        });           
+        csvContent += "\r\n\r\n";
+
         var encodedUri = encodeURI(csvContent);
         var link = document.createElement("a");
         link.setAttribute("href", encodedUri);

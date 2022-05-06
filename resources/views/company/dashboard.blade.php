@@ -120,8 +120,8 @@
                         <td class="text-center" id="header" colspan="5"><strong>Consultation History</strong></td>
                     </tr>
                     <tr>
-                    <th scope="col" style="width:5%" class="text-center">#</th>
                     <th scope="col" style="width: 20%">IC</th>
+                    <th scope="col" style="width: 10%">Category</th>
                     <th scope="col" style="width: 10%">Employee ID</th>
                     <th scope="col" style="width: 20%">Clinic Name</th>
                     <th scope="col" style="width: 10%">Date</th>
@@ -131,9 +131,9 @@
                 <tbody>
                     @foreach($consultations as $index => $consultation)
                     <tr>
-                        <th scope="row" class="text-center">{{ $index+1 }}</th>
                         <td>{{ $consultation->ic }}</td>
-                        <td>{{ $consultation->employee_id }}</td>
+                        <td>{{ ucfirst($consultation->employee_category) }}</td>
+                        <td>{{ $consultation->company_employee_id_new }}</td>
                         <td>{{ $consultation->clinic_name }}</td>
                         <td>{{ \Carbon\Carbon::parse($consultation->created_at)->format('d-m-Y') }}</td>
                         <td class="text-center">

@@ -5,9 +5,11 @@ use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\ConsultationController;
 use App\Http\Controllers\DoctorController;
 use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\DependentController;
 use App\Http\Controllers\IndexController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\InvoiceController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
@@ -47,7 +49,7 @@ Route::middleware(['auth', 'is_admin'])->group(function () {
 
     // Clinic Management
     Route::get('admin/clinic', [ClinicController::class, 'index']);
-    Route::get('admin/clinic/new', function () {   return view('admin.register_clinic');    });
+    Route::get('admin/clinic/new', [ClinicController::class, 'register']);
     Route::post('admin/clinic/store', [ClinicController::class, 'store_clinic_details']);
     Route::put('admin/clinic/update/{id}', [ClinicController::class, 'update_clinic_details']);
     Route::delete('admin/clinic/delete/{id}', [ClinicController::class, 'delete_clinic_details']);
@@ -65,6 +67,15 @@ Route::middleware(['auth', 'is_admin'])->group(function () {
     Route::post('admin/employee/store', [EmployeeController::class, 'store_employee_details']);
     Route::get('admin/consultation', [ConsultationController::class, 'admin_consultation_index']);
     Route::get('admin/payment-history', [PaymentController::class, 'payment_history_index']);
+    Route::get('admin/outstanding-monthly/{company_id}', [PaymentController::class, 'outstanding_monthly']);
+    Route::get('admin/outstanding-monthly/{company_id}/{date}', [PaymentController::class, 'outstanding_detail']);
+    Route::post('admin/outstanding-monthly/upload-invoice', [PaymentController::class, 'upload_invoice']);
+    Route::post('admin/payment/billing/{payment_id}', [PaymentController::class, 'billing']);
+    Route::post('admin/outstanding-monthly/settle', [PaymentController::class, 'monthly_settle']);
+
+    Route::get('admin/dependent/new', [DependentController::class, 'register_index']);
+    Route::post('admin/dependent/store', [DependentController::class, 'store_dependent_details']);
+    Route::get('admin/dependent', [DependentController::class, 'index']);
 });
 
 Route::middleware(['auth', 'is_clinic'])->group(function () {
@@ -89,13 +100,14 @@ Route::middleware(['auth', 'is_clinic'])->group(function () {
     // Payments
     Route::get('clinic/payment', [PaymentController::class, 'index']);
     Route::get('clinic/payment/outstanding-details', [PaymentController::class, 'outstanding_details']);
-    Route::post('clinic/payment/billing/{payment_id}', [PaymentController::class, 'billing']);
     Route::post('clinic/multiple_billing/{company_id}', [PaymentController::class, 'multiple_billing']);
 
     // Patient
     Route::get('clinic/patient/new', [EmployeeController::class, 'register_index']);
     Route::post('clinic/patient/store', [EmployeeController::class, 'store_employee_details']);
 
+    Route::get('clinic/dependent/new', [DependentController::class, 'register_index']);
+    Route::post('clinic/dependent/store', [DependentController::class, 'store_dependent_details']);
 });
 
 Route::middleware(['auth', 'is_company'])->group(function () {
@@ -111,6 +123,10 @@ Route::middleware(['auth', 'is_company'])->group(function () {
     Route::put('company/employee/update/{id}', [EmployeeController::class, 'update_employee_details']);
     Route::delete('company/employee/delete/{id}', [EmployeeController::class, 'delete_employee_details']);
 
+    Route::get('company/dependent/new', [DependentController::class, 'register_index']);
+    Route::post('company/dependent/store', [DependentController::class, 'store_dependent_details']);
+    Route::get('company/dependent', [DependentController::class, 'index']);
+
     // Consultation Management
     Route::get('company/consultation', [ConsultationController::class, 'employee_consultation_report_index']);
 
@@ -121,4 +137,7 @@ Route::middleware(['auth', 'is_company'])->group(function () {
 
     //MC
     Route::get('company/mc', [ConsultationController::class, 'mc_index']);
+
+    Route::get('company/invoice', [InvoiceController::class, 'index']);
+
 });

@@ -35,7 +35,7 @@
               </form>
           </div>
         <div class="float-right">
-          <button type="button" class="btn btn-info text-white mb-3" data-toggle="modal" data-target="#billing_modal">Multiple Billing</button>
+          <!-- <button type="button" class="btn btn-info text-white mb-3" data-toggle="modal" data-target="#billing_modal">Multiple Billing</button> -->
           <button type="button" class="btn btn-info text-white mb-3" data-toggle="modal" data-target="#filter_payment_modal"><i class="fa fa-filter" aria-hidden="true"></i></button>
         </div>
         <table class="table table-bordered table-hover bg-white" id="payment_table">
@@ -48,7 +48,7 @@
             </tr>
             <tr>
               <th scope="col" style="width:5%" class="text-center">#</th>
-              <th scope="col">Employee Name</th>
+              <th scope="col">Patient Name</th>
               <th scope="col" style="width: 15%">IC</th>
               <th scope="col" style="width: 10%">Date</th>
               <th scope="col" style="width: 10%">Amount</th>
@@ -60,7 +60,7 @@
             @foreach($payments as $index => $payment)
               <tr>
                   <th scope="row" class="text-center">{{ $index+1 }}</th>
-                  <td>{{ $payment->employee_name }}</td>
+                  <td>{{ $payment->patient_name }}</td>
                   <td>{{ $payment->ic }}</td>
                   <td>{{ \Carbon\Carbon::parse($payment->created_at)->format('d-m-Y') }}</td>
                   <td>RM {{ number_format((float)($payment->amount), 2) }}</td>
@@ -70,8 +70,8 @@
                   </td> -->
                   <td class="text-center">
                       <button class="btn btn-sm btn-info" data-toggle="modal" data-target="#view_consultation_details_modal{{ $index }}">View</button>  
-                      <button class="btn btn-sm btn-success @if($payment->status == 'settled') d-none @endif" data-toggle="modal" data-target="#billing_modal{{ $index }}">Billing</button>  
-                      @if($payment->status == 'settled') <button class="btn btn-sm btn-success" data-toggle="modal" data-target="#reference_modal{{ $index }}">Reference</button>@endif
+                      <!-- <button class="btn btn-sm btn-success @if($payment->status == 'settled') d-none @endif" data-toggle="modal" data-target="#billing_modal{{ $index }}">Billing</button>   -->
+                      <!-- @if($payment->status == 'settled') <button class="btn btn-sm btn-success" data-toggle="modal" data-target="#reference_modal{{ $index }}">Reference</button>@endif -->
                   </td>
               </tr>   
             @endforeach     
@@ -93,9 +93,9 @@
                       <tbody>
                         <tr>
                           <th class="table-active w-25">Patient Name</th>
-                          <td class="w-25">{{ $payment->employee_name }}</td>
+                          <td class="w-25">{{ $payment->patient_name }}</td>
                           <th class="table-active w-25">Consultation Date</th>
-                          <td class="w-25">{{ \Carbon\Carbon::parse($payment->created_at)->format('d-m-Y') }}</td>
+                          <td class="w-25">{{ \Carbon\Carbon::parse($payment->payment_created_at)->format('d-m-Y') }}</td>
                         </tr>                              
                         <tr>
                           <th class="table-active w-25">Consultation Doctor</th>
@@ -112,7 +112,7 @@
             </div>
         </div>
     </div> 
-    <div class="modal fade" id="billing_modal{{ $index }}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <!-- <div class="modal fade" id="billing_modal{{ $index }}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog">
           <div class="modal-content">
               <div class="modal-header" style="font-size:17px !important;">
@@ -142,7 +142,7 @@
               </form>
           </div>
       </div>
-    </div>      
+    </div>       -->
     <div class="modal fade" id="reference_modal{{ $index }}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-lg">
           <div class="modal-content">
@@ -153,8 +153,8 @@
                   <table class="table table-bordered" id="details_table">
                     <tbody>
                       <tr>
-                        <th class="table-active w-25">Employee Name</th>
-                        <td class="w-25">{{ $payment->employee_name }}</td>
+                        <th class="table-active w-25">Patient Name</th>
+                        <td class="w-25">{{ $payment->patient_name }}</td>
                         <th class="table-active w-25">Status</th>
                         <td class="w-25">
                           @if($payment->status == 'settled') <span class="badge badge-success">Settled</span> @endif
