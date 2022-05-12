@@ -173,7 +173,7 @@ class DependentController extends Controller
         $request->validate([
             'employee' => 'required',
             'name' => 'required',
-            'ic' => 'required|unique:dependents',
+            'ic' => 'required|unique:employees',
             'address' => 'required',
             'contact' => 'required',
             'dob' => 'required',
