@@ -42,7 +42,7 @@ td { width: 25vw; }
         <div class="card-body">
             <div class="card">
                 <div class="card-body">
-                    <h2 class="card-title">@if(isset($employee->category)) Dependent Details @else Employee Details @endif</h2>
+                    <h2 class="card-title">@if($employee->category != 'employee') Dependent Details @else Employee Details @endif</h2>
                     <div class="row">
                         <div class="col">
                             <p><strong>Patient Name :</strong><br> {{ $employee->name }}</p>
@@ -54,7 +54,12 @@ td { width: 25vw; }
                             <p><strong>Date of Birth :</strong><br> {{ $employee->dob }}</p>
                         </div>
                     </div>
-                    @if(isset($employee->category))
+                    @if($employee->category != 'employee')
+                    <div class="row mt-3">
+                            <p><strong>Patient Address :</strong><br> {{ $employee->address }}</p>
+                    </div>
+                    <br>
+                    <h2 class="card-title">Employee Details</h2>
                     <div class="row mt-3">
                         <div class="col">
                             <p><strong>Employee Name :</strong><br> {{ $employee->employee_name }}</p>
@@ -63,12 +68,10 @@ td { width: 25vw; }
                             <p><strong>Employee Company :</strong><br> {{ $employee->company_name }}</p>
                         </div>                
                         <div class="col">
-                            <p><strong>Employee ID :</strong><br> {{ $employee->company_employee_id }}</p>
+                            <p><strong>Employee ID :</strong><br> {{ $employee->employee_company_employee_id }}</p>
                         </div>
                     </div>
-                    <div class="row mt-3">
-                            <p><strong>Patient Address :</strong><br> {{ $employee->address }}</p>
-                    </div>
+                   
                     @else
                         <div class="row mt-3">
                             <div class="col">

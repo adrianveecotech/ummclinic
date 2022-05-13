@@ -122,7 +122,8 @@ class ConsultationController extends Controller
     public function index($ic){
         $employees = DB::table('employees')
             ->join('companys', 'company_id', 'companys.id')
-            ->select('companys.name as company_name', 'employees.*')
+            ->join('employees as e1','employees.employee_id','e1.id')
+            ->select('companys.name as company_name', 'employees.*','e1.name as employee_name','e1.company_employee_id as employee_company_employee_id')
             ->where('employees.ic', 'LIKE', $ic)
             ->get();
         // if($employees->count() == 0){
@@ -359,7 +360,6 @@ class ConsultationController extends Controller
     public function store(Request $request){
         $request->validate([
             'ic' => 'required',
-            'company_employee_id' => 'required',
             'company_id' => 'required',
             'clinic_id' => 'required',
             'price' => 'required',
