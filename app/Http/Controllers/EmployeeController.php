@@ -246,6 +246,7 @@ class EmployeeController extends Controller
         $employees->contact = $request->input('contact');
         $employees->dob = $request->input('dob');
         $employees->company_employee_id = $request->input('company_employee_id');
+        $employees->category = 'employee';
         if(Auth::user()->type == 'Admin' || Auth::user()->type == 'clinic'){
             $employees->company_id = $request->company;
         }
@@ -266,6 +267,9 @@ class EmployeeController extends Controller
         $employees->overall_limit_end_date = $request->input('overall_limit_end_date');
         $employees->daily_limit = $request->input('daily_limit');
         $employees->save();
+        $new_employee = Employee::find($employees->id);
+        $new_employee->employee_id = $employees->id;
+        $new_employee->save();
         return back()->with('message', 'Employee created successfully.');
     }
 
