@@ -50,7 +50,7 @@ class ClinicController extends Controller
         $request->validate([
             'name' => 'required|max:255',
             'email' => 'required|unique:clinics|unique:users',
-        'address' => 'required|max:255',
+            'address' => 'required|max:255',
             'contact' => 'required|max:255',
         ]);
 
@@ -74,7 +74,8 @@ class ClinicController extends Controller
 
         $users = new User();
 
-        $random_password = Hash::make(Str::random(8));
+        $password = Str::random(8);
+        $random_password = Hash::make($password);
 
         $users->name = Str::upper($request->input('name'));
         $users->email = $email;
@@ -82,6 +83,12 @@ class ClinicController extends Controller
         $users->clinic_id = $clinic_id->id;
 
         $users->save();
+
+        $details = [
+            'body' => 'This is your temporary password: ' . $password
+        ];
+       
+        \Mail::to($email)->send(new \App\Mail\AccountCreatePasswordMail($details));
 
         return back()->with('message', 'Clinic Register Successfully.');
     }
