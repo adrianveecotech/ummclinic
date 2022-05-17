@@ -56,12 +56,46 @@
                         <input type="text" class="form-control" name="department" required>
                     </div>
                     <div class="form-group">
-                        <label for="monthly_limit">Monthly Limit</label>
-                        <input type="text" class="form-control" name="monthly_limit" required>
+                        <div class="row">
+                            <div class="col-2">
+                                <label for="monthly_limit">Monthly Limit</label>
+                                <input type="text" class="form-control" name="monthly_limit" required>
+                            </div>
+                            <div class="col-2">
+                                <label for="monthly_limit_start_date">Start Date</label>
+                                <input type="date" class="form-control" name="monthly_limit_start_date" required>
+                            </div>
+                            <div class="col-2">
+                                <label for="monthly_limit_end_date">End Date</label>
+                                <input type="date" class="form-control" name="monthly_limit_end_date" required>
+                            </div>
+                            <!-- <div class="col-2">
+                                <label for="monthly_limit_distributed">Monthly?</label>
+                                <div>
+                                    <input type="checkbox" name="monthly_limit_distributed" value="true" >
+                                </div>
+                            </div> -->
+                        </div>
                     </div>
                     <div class="form-group">
-                        <label for="yearly_limit">Yearly Limit</label>
-                        <input type="etxt" class="form-control" name="yearly_limit" required>
+                         <div class="row">
+                            <div class="col-2">
+                                <label for="overall_limit">Overall Limit</label>
+                                <input type="text" class="form-control" name="overall_limit" required>
+                            </div>
+                            <div class="col-2">
+                                <label for="overall_limit_start_date">Start Date</label>
+                                <input type="date" class="form-control" name="overall_limit_start_date" required>
+                            </div>
+                            <div class="col-2">
+                                <label for="overall_limit_end_date">End Date</label>
+                                <input type="date" class="form-control" name="overall_limit_end_date" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="daily_limit">Daily Limit</label>
+                        <input type="text" class="form-control col-2" name="daily_limit" required>
                     </div>
                 <button type="submit" class="btn btn-success">Register</button>
             </form>          
