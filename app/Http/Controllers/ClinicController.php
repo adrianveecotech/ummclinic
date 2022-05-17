@@ -82,13 +82,13 @@ class ClinicController extends Controller
         $users->password = $random_password;
         $users->clinic_id = $clinic_id->id;
 
-        $users->save();
-
         $details = [
             'body' => 'This is your temporary password: ' . $password
         ];
        
         \Mail::to($email)->send(new \App\Mail\AccountCreatePasswordMail($details));
+
+        $users->save();
 
         return back()->with('message', 'Clinic Register Successfully.');
     }

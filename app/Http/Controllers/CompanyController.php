@@ -79,7 +79,8 @@ class CompanyController extends Controller
 
         $users = new User();
 
-        $random_password = Hash::make(Str::random(8));
+        $password = Str::random(8);
+        $random_password = Hash::make($password);
 
         $users->name = Str::upper($request->input('name'));
         $users->email = $email;
@@ -87,6 +88,12 @@ class CompanyController extends Controller
         $users->type = 'company';
         $users->company_id = $company_id->id;
 
+        $details = [
+            'body' => 'This is your temporary password: ' . $password
+        ];
+       
+        \Mail::to($email)->send(new \App\Mail\AccountCreatePasswordMail($details));
+        
         $users->save();
 
         return back()->with('message', 'Company Register Successfully.');
