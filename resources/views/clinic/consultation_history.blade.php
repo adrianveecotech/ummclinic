@@ -113,6 +113,16 @@
                             <td class="w-25">{{ $consultation_detail->doctor_name }}</td>
                             <th class="table-active w-25">Consultation Price</th>
                             <td class="w-25">RM {{ number_format((float)($consultation_detail->price), 2) }}</td>
+                          </tr>  
+                          <tr>
+                            <th class="table-active w-25">MC</th>
+                            <td class="w-25"> @if($consultation_detail->mc_startdate == $consultation_detail->mc_enddate)
+                                  {{ $consultation_detail->mc_startdate }}
+                                  @else
+                                  From {{ $consultation_detail->mc_startdate}} to {{$consultation_detail->mc_enddate}}
+                                  @endif</td>
+                            <th class="table-active w-25">Medications</th>
+                            <td class="w-25">{{ $consultation_detail->medications_name }}</td>
                           </tr>                              
                           <tr>
                             <td id="dash_description_id" colspan="4">

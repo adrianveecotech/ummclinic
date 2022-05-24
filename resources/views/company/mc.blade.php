@@ -50,6 +50,7 @@
                       <td>{{$consultation->clinic_name}}</td>
                       <td>{{$consultation->total_mc}}</td>
                       <td class="text-center">
+                      <a href="{{route('company_mc_dependent', ['id' => $consultation->employee_id])}}" class="btn btn-sm btn-info" >Show Dependent's</a>  
                       <button class="btn btn-sm btn-info" data-toggle="modal" data-target="#view_mc_modal{{ $index }}">View</button>  
                     </td>
                     </tr>                 

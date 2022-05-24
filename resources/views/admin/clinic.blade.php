@@ -118,11 +118,20 @@
                                   <input type="email" class="form-control" name="email" pattern="[a-zA-Z0-9.-_]{1,}@[a-zA-Z.-]{2,}[.]{1}[a-zA-Z]{2,}" value="{{ $clinic->email }}">
                                 </div>
                             </div>
-                            <label for="status">Status</label>
-                            <select class="custom-select" name="status">
-                              <option value="active" @if($clinic->status == 'active') selected @endif>Active</option>
-                              <option value="inactive" @if($clinic->status == 'inactive') selected @endif>Inactive</option>
-                            </select>
+                            <div class="row">
+                                <div class="form-group col-md-6">
+                                <label for="status">Status</label>
+                                  <select class="custom-select" name="status">
+                                    <option value="active" @if($clinic->status == 'active') selected @endif>Active</option>
+                                    <option value="inactive" @if($clinic->status == 'inactive') selected @endif>Inactive</option>
+                                  </select>
+                                </div>
+                                <div class="form-group col-md-6">
+                                  <label for="branch">Branch</label>
+                                  <input type="text" class="form-control" name="branch" value="{{$clinic->branch_name ? $clinic->branch_name : $clinic->name}}" disabled>
+                                </div>
+                            </div>
+                           
                           </div>
                           <div class="modal-footer">
                               <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>

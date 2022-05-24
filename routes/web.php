@@ -71,6 +71,7 @@ Route::middleware(['auth', 'is_admin'])->group(function () {
     Route::get('admin/outstanding-monthly/{company_id}/{date}', [PaymentController::class, 'outstanding_detail']);
     Route::post('admin/outstanding-monthly/upload-invoice', [PaymentController::class, 'upload_invoice']);
     Route::post('admin/payment/billing/{payment_id}', [PaymentController::class, 'billing']);
+    Route::get('admin/payment/processing/{payment_id}', [PaymentController::class, 'processing'])->name('admin_payment_processing');
     Route::post('admin/outstanding-monthly/settle', [PaymentController::class, 'monthly_settle']);
 
     Route::get('admin/dependent/new', [DependentController::class, 'register_index']);
@@ -137,6 +138,8 @@ Route::middleware(['auth', 'is_company'])->group(function () {
 
     //MC
     Route::get('company/mc', [ConsultationController::class, 'mc_index']);
+
+    Route::get('company/mc/{id}', [ConsultationController::class, 'mc_dependent'])->name('company_mc_dependent');
 
     Route::get('company/invoice', [InvoiceController::class, 'index']);
 

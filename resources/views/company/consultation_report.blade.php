@@ -36,6 +36,7 @@
             </form>
           </div>
           <div class="float-right mb-3">
+            <button type="button" class="btn btn-info mr-1" id="btnExport" onclick="exportReport();">Export</a>
             <button type="button" class="btn btn-info text-white" data-toggle="modal" data-target="#filter_employee_modal"><i class="fa fa-filter" aria-hidden="true"></i></button>
             <div class="modal fade" id="filter_employee_modal" tabindex="-1" role="dialog" aria-labelledby="employeeFilterModal" aria-hidden="true">
               <div class="modal-dialog" role="document">
@@ -63,6 +64,7 @@
                             <option selected></option>
                             <option value="settled">Settled</option>
                             <option value="unsettled">Unsettled</option>
+                            <option value="processing">Processing</option>
                           </select>
                         </div>
                         <div class="modal-footer">
@@ -130,8 +132,23 @@
                             <td class="w-25">
                                 @if($consultation->payment_status == 'settled') <span class="badge badge-success">Settled</span>@endif
                                 @if($consultation->payment_status == 'unsettled') <span class="badge badge-danger">Unsettled</span>@endif
+                                @if($consultation->payment_status == 'processing') <span class="badge badge-info">Processing</span>@endif
                             </td>
-                          </tr>                            
+                          </tr>   
+                          <tr>
+                            <th class="table-active w-25">MC</th>
+                            <td class="w-25"> @if($consultation->mc_startdate == $consultation->mc_enddate)
+                                  {{ $consultation->mc_startdate }}
+                                  @else
+                                  From {{ $consultation->mc_startdate}} to {{$consultation->mc_enddate}}
+                                  @endif</td>
+                              <th class="table-active w-25">Medications</th>
+                            <td class="w-25">{{ $consultation->medications_name }}</td>
+                          </tr>                      
+                          <tr>
+                            <td id="dash_description_id" colspan="4">
+                              {!! nl2br($consultation->description) !!}
+                          </tr>      
                         </tbody>
                       </table>
                       <div class="card" id="amount_card">
@@ -150,4 +167,28 @@
         </div>
       </div>
 </div>
+@endsection
+@section('scripts')
+<script type="text/javascript">
+    var consultations = <?php echo $allConsultations ?>;
+
+    function exportReport(){
+        let csvContent = "data:text/csv;charset=utf-8,";
+        csvContent += "Consultation History \r\n";
+
+        csvContent += "Patient Name, IC, Clinic Name, Created At, Doctor, Payment Status, MC, Medications, Diagnosis, Price \r\n";
+        consultations.forEach(consultation => {
+          if(consultation.mc_startdate == null)
+          csvContent += consultation.employee_name + "," +  consultation.ic + "," + consultation.clinic_name + "," + consultation.created_at + "," + consultation.doctor_name + "," + consultation.payment_status + "," + '-' + "," + consultation.medications_name.replace(",", ";") + "," + consultation.description.replace(",", ";") + "," + consultation.price + "\r\n";
+          else
+            csvContent += consultation.employee_name + "," +  consultation.ic + "," + consultation.clinic_name + "," + consultation.created_at + "," + consultation.doctor_name + "," + consultation.payment_status + "," + consultation.mc_startdate + '-' + consultation.mc_enddate + "," + consultation.medications_name.replace(",", ";") + "," + consultation.description.replace(",", ";") + "," + consultation.price + "\r\n";
+        });
+        var encodedUri = encodeURI(csvContent);
+        var link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "consultation_history.csv");
+        document.body.appendChild(link);
+        link.click()
+      }
+</script>
 @endsection

@@ -93,6 +93,7 @@ td { width: 25vw; }
                     <div class="card-body">
                         <h2 class="card-title">Consultation</h2>
                         <input type="hidden" name="ic" value="{{ $employee->ic }}">
+                        <input type="hidden" name="employee_id" value="{{ $employee->employee_id }}">
                         <input type="hidden" name="company_employee_id" value="{{ $employee->company_employee_id }}">
                         <input type="hidden" name="company_id" value="{{ $employee->company_id }}">
                         <input type="hidden" name="clinic_id" value="{{ Auth::user()->clinic_id }}">

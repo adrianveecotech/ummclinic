@@ -183,7 +183,7 @@ b{
                                 <th class="table-active w-25">Category</th>
                                 <td class="w-25">{{ ucfirst($dependent['category']) }}</td>
                                 <th class="table-active w-25">IC</th>
-                                <td class="w-25">RM {{ $dependent['ic'] }}</td>
+                                <td class="w-25">{{ $dependent['ic'] }}</td>
                               </tr>  
                               <tr>
                                 <th class="table-active w-25">Date of Birth</th>
@@ -274,6 +274,10 @@ b{
                                   @else
                                   From {{ $consultation_detail->mc_startdate}} to {{$consultation_detail->mc_enddate}}
                                   @endif
+                                </td>
+                                <th class="table-active w-25">Medications</th>
+                                <td class="w-25">
+                                {{ $consultation_detail->medications_name }}
                                 </td>
                               </tr>                               
                               <tr>

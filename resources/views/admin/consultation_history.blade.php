@@ -132,6 +132,7 @@
                             <td class="w-25">
                                 @if($consultation->payment_status == 'settled') <span class="badge badge-success">Settled</span>@endif
                                 @if($consultation->payment_status == 'unsettled') <span class="badge badge-danger">Unsettled</span>@endif
+                                @if($consultation->payment_status == 'processing') <span class="badge badge-info">Processing</span>@endif
                             </td>
                           </tr>  
                           <tr>
@@ -157,7 +158,7 @@
                         <strong>Medications:</strong>
                         @foreach($medications as $medication)
                           @if($medication->consultation_id == $consultation->id)
-                            {{$medication->name}} - {{$medication->quantity}}{{$medication->unit}}
+                            {{$medication->name}} - {{$medication->quantity}} {{$medication->unit}}
                           <br>
                           @endif
                         @endforeach

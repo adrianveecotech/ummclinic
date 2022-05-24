@@ -55,14 +55,13 @@ class ConsultationController extends Controller
                 ->join('clinics', 'consultations.clinic_id', 'clinics.id')
                 ->join('doctors', 'consultations.doctor_id', 'doctors.id')
                 ->join('payments', 'consultations.id', 'payments.consultation_id')
-                ->join('users', 'users.id', 'consultations.clinic_admin')
                 ->select(
                     'employees.name as employee_name',
                     'clinics.name as clinic_name',
                     'consultations.*',
                     'doctors.name as doctor_name',
                     'payments.status as payment_status',
-                    'users.name as clinic_admin'
+                    'consultations.clinic_admin as clinic_admin'
                 )
                 ->whereDate('consultations.created_at', '>=', $start_date)
                 ->whereDate('consultations.created_at', '<=', $end_date);
@@ -123,7 +122,7 @@ class ConsultationController extends Controller
         $employees = DB::table('employees')
             ->join('companys', 'company_id', 'companys.id')
             ->join('employees as e1','employees.employee_id','e1.id')
-            ->select('companys.name as company_name', 'employees.*','e1.name as employee_name','e1.company_employee_id as employee_company_employee_id')
+            ->select('companys.name as company_name', 'employees.*','e1.name as employee_name','e1.company_employee_id as employee_company_employee_id','employees.id as employee_id')
             ->where('employees.ic', 'LIKE', $ic)
             ->get();
         // if($employees->count() == 0){
@@ -205,9 +204,13 @@ class ConsultationController extends Controller
                 $consultation_details = DB::table('consultations')
                         ->join('clinics', 'consultations.clinic_id', 'clinics.id')
                         ->join('doctors', 'consultations.doctor_id', 'doctors.id')
-                        ->select('doctors.name as doctor_name', 'consultations.*','clinics.name as clinic_name','consultations.clinic_admin as clinic_admin')
+                        ->join('medications_consultation', 'medications_consultation.consultation_id', 'consultations.id')
+                        ->select('doctors.name as doctor_name', 'consultations.*','clinics.name as clinic_name','consultations.clinic_admin as clinic_admin',
+                        DB::raw('group_concat(medications_consultation.name) as medications_name')
+                    )
                         ->where('consultations.ic', $query)
                         ->orderBy('consultations.created_at', 'desc')
+                        ->groupBy('consultations.id')
                         ->paginate(5);
                 return view('clinic.search_dependent', compact('dependents','status', 'consultations', 'consultation_details','number_of_mc','overall_limit_exceeded','employee_of_dependent','overall_spent','dependents','daily_limit_exceeded','monthly_limit_exceeded','monthly_spent','daily_spent'));
             }else{
@@ -274,9 +277,13 @@ class ConsultationController extends Controller
                         ->join('employees', 'consultations.ic', 'employees.ic')
                         ->join('clinics', 'consultations.clinic_id', 'clinics.id')
                         ->join('doctors', 'consultations.doctor_id', 'doctors.id')
-                        ->select('employees.name as employee_name', 'employees.ic as employee_ic', 'doctors.name as doctor_name', 'consultations.*','clinics.name as clinic_name','consultations.clinic_admin as clinic_admin')
+                        ->join('medications_consultation', 'medications_consultation.consultation_id', 'consultations.id')
+                        ->select('employees.name as employee_name', 'employees.ic as employee_ic', 'doctors.name as doctor_name', 'consultations.*','clinics.name as clinic_name',
+                        DB::raw('group_concat(medications_consultation.name) as medications_name')
+                        )
                         ->where('consultations.ic', $query)
                         ->orwhere('consultations.company_employee_id', $query)
+                        ->groupBy('consultations.id')
                         ->orderBy('consultations.created_at', 'desc')
                         ->paginate(5);
 
@@ -296,12 +303,14 @@ class ConsultationController extends Controller
                 ->join('employees', 'consultations.ic', 'employees.ic')
                 ->join('companys', 'consultations.company_id', 'companys.id')
                 ->join('doctors', 'consultations.doctor_id', 'doctors.id')
+                ->join('medications_consultation', 'medications_consultation.consultation_id', 'consultations.id')
                 ->select(
                     'employees.name as employee_name', 
                     'employees.ic as employee_ic', 
                     'companys.name as company_name',
                     'doctors.name as doctor_name', 
-                    'consultations.*'
+                    'consultations.*',
+                    DB::raw('group_concat(medications_consultation.name) as medications_name')
                     )
                 ->where(function ($query) use ($search) {
                     $query
@@ -309,6 +318,7 @@ class ConsultationController extends Controller
                         ->orwhere('companys.name', 'LIKE', '%'.$search.'%');
                     })
                 ->where('consultations.clinic_id', Auth::user()->clinic_id)
+                ->groupBy('consultations.id')
                 ->orderBy('consultations.created_at', 'desc')
                 ->paginate(10);
 
@@ -322,16 +332,19 @@ class ConsultationController extends Controller
                 ->join('employees', 'consultations.ic', 'employees.ic')
                 ->join('companys', 'consultations.company_id', 'companys.id')
                 ->join('doctors', 'consultations.doctor_id', 'doctors.id')
+                ->join('medications_consultation', 'medications_consultation.consultation_id', 'consultations.id')
                 ->select(
                     'employees.name as employee_name', 
                     'employees.ic as employee_ic', 
                     'companys.name as company_name',
                     'doctors.name as doctor_name', 
-                    'consultations.*'
+                    'consultations.*',
+                    DB::raw('group_concat(medications_consultation.name) as medications_name')
                     )
                 ->whereDate('consultations.created_at', '>=', $start_date)
                 ->whereDate('consultations.created_at', '<=', $end_date)
                 ->where('consultations.clinic_id', Auth::user()->clinic_id)
+                ->groupBy('consultations.id')
                 ->orderBy('consultations.created_at', 'desc')
                 ->paginate(10);
 
@@ -342,14 +355,17 @@ class ConsultationController extends Controller
                 ->join('employees', 'consultations.ic', 'employees.ic')
                 ->join('companys', 'consultations.company_id', 'companys.id')
                 ->join('doctors', 'consultations.doctor_id', 'doctors.id')
+                ->join('medications_consultation', 'medications_consultation.consultation_id', 'consultations.id')
                 ->select(
                     'employees.name as employee_name', 
                     'employees.ic as employee_ic', 
                     'companys.name as company_name',
                     'doctors.name as doctor_name', 
-                    'consultations.*'
+                    'consultations.*',
+                    DB::raw('group_concat(medications_consultation.name) as medications_name')
                     )
                 ->where('consultations.clinic_id', Auth::user()->clinic_id)
+                ->groupBy('consultations.id')
                 ->orderBy('consultations.created_at', 'desc')
                 ->paginate(10);
 
@@ -402,6 +418,7 @@ class ConsultationController extends Controller
         $consultations->mc_startdate = $request->mc_startdate;
         $consultations->mc_enddate = $request->mc_enddate;
         $consultations->description = $request->description;
+        $consultations->employee_id = $request->employee_id;
 
         $consultations->save();
 
@@ -442,12 +459,14 @@ class ConsultationController extends Controller
                 ->join('clinics', 'consultations.clinic_id', 'clinics.id')
                 ->join('doctors', 'consultations.doctor_id', 'doctors.id')
                 ->join('payments', 'consultations.id', 'payments.consultation_id')
+                ->join('medications_consultation', 'medications_consultation.consultation_id', 'consultations.id')
                 ->select(
                     'employees.name as employee_name',
                     'clinics.name as clinic_name',
                     'consultations.*',
                     'doctors.name as doctor_name',
-                    'payments.status as payment_status'
+                    'payments.status as payment_status',
+                    DB::raw('group_concat(medications_consultation.name) as medications_name')
                     )
                 ->where('consultations.company_id', Auth::user()->company_id)
                 ->where(function ($query) use ($search) {
@@ -456,10 +475,13 @@ class ConsultationController extends Controller
                         ->orwhere('employees.ic', 'LIKE', $search)
                         ->orwhere('clinics.name', 'LIKE', '%'.$search.'%');
                     })
-                ->orderBy('consultations.created_at', 'desc')
-                ->paginate(10);
+                ->groupBy('consultations.id')
+                ->orderBy('consultations.created_at', 'desc');
 
-            return view('company.consultation_report', compact('consultations'));
+            $allConsultations = $consultations->get();
+            $consultations = $consultations->paginate(10);
+
+            return view('company.consultation_report', compact('consultations','allConsultations'));
         }
         else if($request->get('status')){
             $status = $request->get('status');
@@ -471,13 +493,17 @@ class ConsultationController extends Controller
                 ->join('clinics', 'consultations.clinic_id', 'clinics.id')
                 ->join('doctors', 'consultations.doctor_id', 'doctors.id')
                 ->join('payments', 'consultations.id', 'payments.consultation_id')
+                ->join('medications_consultation', 'medications_consultation.consultation_id', 'consultations.id')
                 ->select(
                     'employees.name as employee_name',
                     'clinics.name as clinic_name',
                     'consultations.*',
                     'doctors.name as doctor_name',
-                    'payments.status as payment_status'
-                );
+                    'payments.status as payment_status',
+                    DB::raw('group_concat(medications_consultation.name) as medications_name')
+                )
+                ->groupBy('consultations.id');
+
                 if($start_date && $end_date){
                     $consultations = $consultations
                         ->whereDate('consultations.created_at', '>=', $start_date)
@@ -490,10 +516,12 @@ class ConsultationController extends Controller
                 $consultations = $consultations
                     ->where('consultations.company_id', Auth::user()->company_id)
                     ->where('payments.status', 'LIKE', $status)
-                    ->orderBy('consultations.created_at', 'desc')
-                    ->paginate(10);
+                    ->orderBy('consultations.created_at', 'desc');
 
-            return view('company.consultation_report', compact('consultations'));
+                $allConsultations = $consultations->get();
+                $consultations = $consultations->paginate(10);
+
+            return view('company.consultation_report', compact('consultations','allConsultations'));
         }
         else if($request->get('start_date') && $request->get('end_date')){
             $start_date = $request->get('start_date');
@@ -504,20 +532,25 @@ class ConsultationController extends Controller
                 ->join('clinics', 'consultations.clinic_id', 'clinics.id')
                 ->join('doctors', 'consultations.doctor_id', 'doctors.id')
                 ->join('payments', 'consultations.id', 'payments.consultation_id')
+                ->join('medications_consultation', 'medications_consultation.consultation_id', 'consultations.id')
                 ->select(
                     'employees.name as employee_name',
                     'clinics.name as clinic_name',
                     'consultations.*',
                     'doctors.name as doctor_name',
-                    'payments.status as payment_status'
+                    'payments.status as payment_status',
+                    DB::raw('group_concat(medications_consultation.name) as medications_name')
                     )
                 ->whereDate('consultations.created_at', '>=', $start_date)
                 ->whereDate('consultations.created_at', '<=', $end_date)
                 ->where('consultations.company_id', Auth::user()->company_id)
-                ->orderBy('consultations.created_at', 'desc')
-                ->paginate(10);
+                ->groupBy('consultations.id')
+                ->orderBy('consultations.created_at', 'desc');
 
-            return view('company.consultation_report', compact('consultations'));
+            $allConsultations = $consultations->get();
+            $consultations = $consultations->paginate(10);
+
+            return view('company.consultation_report', compact('consultations','allConsultations'));
         }
         else{
             $consultations = DB::table('consultations')
@@ -525,18 +558,23 @@ class ConsultationController extends Controller
                 ->join('clinics', 'consultations.clinic_id', 'clinics.id')
                 ->join('doctors', 'consultations.doctor_id', 'doctors.id')
                 ->join('payments', 'consultations.id', 'payments.consultation_id')
+                ->join('medications_consultation', 'medications_consultation.consultation_id', 'consultations.id')
                 ->select(
                     'employees.name as employee_name',
                     'clinics.name as clinic_name',
                     'consultations.*',
                     'doctors.name as doctor_name',
-                    'payments.status as payment_status'
+                    'payments.status as payment_status',
+                    DB::raw('group_concat(medications_consultation.name) as medications_name')
                     )
-                ->where('consultations.company_id', Auth::user()->company_id)
-                ->orderBy('consultations.created_at', 'desc')
-                ->paginate(10);
+                ->where('consultations.company_id', Auth::user()->company_id) 
+                ->groupBy('consultations.id')
+                ->orderBy('consultations.created_at', 'desc');
 
-        return view('company.consultation_report', compact('consultations'));
+            $allConsultations = $consultations->get();
+            $consultations = $consultations->paginate(10);
+
+        return view('company.consultation_report', compact('consultations','allConsultations'));
         }
     }
 
@@ -600,6 +638,7 @@ class ConsultationController extends Controller
             ->where('consultations.company_id', Auth::user()->company_id)
             ->where('consultations.mc_startdate', '!=',null)
             ->where('consultations.mc_enddate', '!=',null)
+            ->where('employees.category', '=','employee')
             ->orderBy('consultations.mc_enddate', 'desc')
             ->groupBy('consultations.ic')
             ->paginate(10);
@@ -617,5 +656,26 @@ class ConsultationController extends Controller
         }
         
         return view('company.mc', compact('consultations','consultation_details'));
+    }
+
+    public function mc_dependent($id){
+        $dependents = Employee::where('category','dependent')->where('employee_id',$id)->pluck('id')->toArray();
+        $employee = Employee::find($id)->first();
+        $consultations = DB::table('consultations')
+        ->join('employees', 'consultations.ic', 'employees.ic')
+        ->join('clinics', 'clinics.id', 'consultations.clinic_id')
+        ->select(
+            'employees.name as employee_name',
+            'employees.ic as employee_ic',
+            'clinics.name as clinic_name',
+            'consultations.*',
+            )
+        ->whereIn('consultations.employee_id', $dependents)
+        ->where('consultations.mc_startdate', '!=',null)
+        ->where('consultations.mc_enddate', '!=',null)
+        ->where('employees.category', '!=','employee')
+        ->orderBy('consultations.mc_enddate', 'desc')
+        ->paginate(10);
+        return view('company.mc_dependent', compact('consultations','employee'));
     }
 }

@@ -171,9 +171,33 @@
                                     <label for="monthly_limit">Monthly limit</label>
                                     <input type="text" class="form-control" name="monthly_limit" value="{{ $employee->monthly_limit }}"></input>
                                 </div>
+                                <div class="form-group col-md-3">
+                                  <label for="monthly_limit_start_date">Start Date</label>
+                                  <input type="date" class="form-control" name="monthly_limit_start_date" value="{{ $employee->monthly_limit_start_date }}" required>
+                                </div>
+                                <div class="form-group col-md-3">
+                                  <label for="monthly_limit_end_date">End Date</label>
+                                  <input type="date" class="form-control" name="monthly_limit_end_date" value="{{ $employee->monthly_limit_end_date }}" required>
+                                </div>  
+                            </div>
+                            <div class="row">
+                              <div class="form-group col-md-6">
+                                <label for="yearly_limit">Overall limit</label>
+                                <input type="text" class="form-control" name="overall_limit" value="{{ $employee->overall_limit }}"></input>
+                              </div>
+                              <div class="form-group col-md-3">
+                                <label for="overall_limit_start_date">Start Date</label>
+                                <input type="date" class="form-control" name="overall_limit_start_date" value="{{ $employee->overall_limit_start_date }}" required>
+                              </div>
+                              <div class="form-group col-md-3">
+                                <label for="overall_limit_end_date">End Date</label>
+                                <input type="date" class="form-control" name="overall_limit_end_date" value="{{ $employee->overall_limit_end_date }}" required>
+                              </div>  
+                            </div>
+                            <div class="row">
                                 <div class="form-group col-md-6">
-                                    <label for="yearly_limit">Yearly limit</label>
-                                    <input type="text" class="form-control" name="yearly_limit" value="{{ $employee->yearly_limit }}"></input>
+                                    <label for="daily_limit">Daily Limit</label>
+                                    <input type="text" class="form-control" name="daily_limit" value="{{ $employee->daily_limit }}"></input>
                                 </div>
                             </div>
                           </div>

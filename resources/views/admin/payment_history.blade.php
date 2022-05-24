@@ -33,6 +33,19 @@
 <div class="container-fluid">
     <div class="card">
         <div class="card-body">
+            @if(session('success'))
+                <div class="row mb-2">
+                    <div class="col-lg-12">
+                        <div class="alert alert-success" role="alert">{{ session('success') }}</div>
+                    </div>
+                </div>
+            @elseif(session('fail'))
+            <div class="row mb-2">
+                    <div class="col-lg-12">
+                        <div class="alert alert-danger" role="alert">{{ session('fail') }}</div>
+                    </div>
+                </div>
+            @endif
             @if(!Request::get('group_by'))
             <div class="float-left">
                 <form action="{{ url('admin/payment-history') }}" method="GET">
@@ -102,6 +115,7 @@
                                 <option selected></option>
                                   <option value="settled">Settled</option>
                                   <option value="unsettled">Unsettled</option>
+                                  <option value="processing">Processing</option>
                               </select>
                               <br>
                               <label for="company">Company</label>
@@ -148,6 +162,7 @@
                         <td class="text-center">
                             @if($payment->status == 'settled') <span class="badge badge-success">Settled</span> @endif
                             @if($payment->status == 'unsettled') <span class="badge badge-danger">Unsettled</span> @endif
+                            @if($payment->status == 'processing') <span class="badge badge-info">Processing</span> @endif
                         </td>
                         <td class="text-center">
                         <div class="dropdown">
@@ -155,7 +170,10 @@
                             <div id="myDropdown[{{$index}}]" class="dropdown-content">
                                 <a href="#" data-toggle="modal" data-target="#view_consultation_details_modal{{ $index }}">View</a>
                                 @if($payment->status == 'unsettled') 
-                                    <a href="#">Processing</a>
+                                    <a href="{{ route('admin_payment_processing', ['payment_id' => $payment->id] ) }}">Processing</a>
+                                    <a href="" data-toggle="modal" data-target="#billing_modal{{ $index }}">Settled</a>
+                                @endif
+                                @if($payment->status == 'processing') 
                                     <a href="" data-toggle="modal" data-target="#billing_modal{{ $index }}">Settled</a>
                                 @endif
                             </div>
@@ -205,6 +223,7 @@
                                     <td class="w-25">
                                         @if($payment->status == 'settled') <span class="badge badge-success">Settled</span> @endif
                                         @if($payment->status == 'unsettled') <span class="badge badge-danger">Unsettled</span> @endif
+                                        @if($payment->status == 'processing') <span class="badge badge-info">Processing</span>@endif
                                     </td>
                                 </tr>                             
                               </tbody>

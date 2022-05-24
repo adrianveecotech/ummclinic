@@ -133,7 +133,7 @@
                     <tr>
                         <td>{{ $consultation->ic }}</td>
                         <td>{{ ucfirst($consultation->employee_category) }}</td>
-                        <td>{{ $consultation->company_employee_id_new }}</td>
+                        <td>{{ $consultation->company_employee_id_new ? $consultation->company_employee_id_new : '-' }}</td>
                         <td>{{ $consultation->clinic_name }}</td>
                         <td>{{ \Carbon\Carbon::parse($consultation->created_at)->format('d-m-Y') }}</td>
                         <td class="text-center">
@@ -173,6 +173,7 @@
                                 <td class="w-25">
                                     @if($consultation->payment_status == 'settled') <span class="badge badge-success">Settled</span>@endif
                                     @if($consultation->payment_status == 'unsettled') <span class="badge badge-danger">Unsettled</span>@endif
+                                    @if($consultation->payment_status == 'processing') <span class="badge badge-info">Processing</span>@endif
                                 </td>
                                 </tr>                            
                             </tbody>

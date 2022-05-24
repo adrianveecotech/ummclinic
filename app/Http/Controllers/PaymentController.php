@@ -287,7 +287,7 @@ class PaymentController extends Controller
                 )
                 ->where('companys.id', '=', $company_id)
                 ->orderBy('payments.created_at', 'desc');
-                $allPayments = $payments; 
+                $allPayments = $payments->get(); 
                 $payments = $payments->paginate(10);
         }
         else{
@@ -352,28 +352,36 @@ class PaymentController extends Controller
         if($request->get('search')){
             $search = $request->get('search');
             $company_id = $request->get('company');
-
             $payments = DB::table('payments')
                 ->join('employees', 'payments.ic', 'employees.ic')
                 ->join('companys', 'payments.company_id', 'companys.id')
                 ->join('consultations', 'payments.consultation_id', 'consultations.id')
                 ->join('doctors', 'consultations.doctor_id', 'doctors.id')
+                ->join('medications_consultation','medications_consultation.consultation_id','consultations.id')
                 ->select(
                     'employees.name as patient_name', 
                     'companys.name as company_name', 
-                    'consultations.*',
+                    'consultations.description as consultations_description',
+                    'consultations.mc_startdate',
+                    'consultations.mc_enddate',
+                    'consultations.price',
                     'doctors.name as doctor_name',
-                    'payments.*'
+                    'payments.*',
+                    'payments.created_at as payment_created_at',
+                    DB::raw('group_concat(medications_consultation.name) as medications_name')
+
                 )
                 ->where('payments.clinic_id', Auth::user()->clinic_id)
                 ->where('payments.company_id', $company_id)
+                ->where('payments.status', 'unsettled')
                 ->orderby('payments.created_at', 'desc')
                 ->where(function ($query) use ($search) {
                     $query
                         ->where('payments.ic', 'LIKE', $search)
                         ->orwhere('companys.name', 'LIKE', '%'.$search.'%');
                     });
-            
+            $allPayments = $payments->get();
+            $payments = $payments->paginate(10);         
             // // $paymentsDependents = DB::table('payments')
             // //     ->join('dependents', 'payments.ic', 'dependents.ic')
             // //     ->join('companys', 'payments.company_id', 'companys.id')
@@ -382,7 +390,7 @@ class PaymentController extends Controller
             // //     ->select(
             // //         'dependents.name as patient_name', 
             // //         'companys.name as company_name', 
-            // //         'consultations.*',
+            // //         'consultations.description as consultations_description',
             // //         'doctors.name as doctor_name',
             // //         'payments.*'
             // //     )
@@ -419,7 +427,7 @@ class PaymentController extends Controller
                     })
                 ->get();
 
-            return view('clinic.outstanding_details', compact('payments', 'company_name', 'outstanding_amount'));
+            return view('clinic.outstanding_details', compact('payments', 'allPayments', 'company_name', 'outstanding_amount'));
         }
 
         if($request->get('status')){
@@ -428,21 +436,24 @@ class PaymentController extends Controller
             $start_date = $request->get('start_date');
             $end_date = $request->get('end_date');
             $status = $request->get('status');
-
             $payments = DB::table('payments')
                 ->join('employees', 'payments.ic', 'employees.ic')
                 ->join('companys', 'payments.company_id', 'companys.id')
                 ->join('consultations', 'payments.consultation_id', 'consultations.id')
                 ->join('doctors', 'consultations.doctor_id', 'doctors.id')
+                ->join('medications_consultation','medications_consultation.consultation_id','consultations.id')
                 ->select(
+                    'consultations.description as consultations_description',
+                    'consultations.mc_startdate',
+                    'consultations.mc_enddate',
                     'employees.name as patient_name', 
                     'companys.name as company_name', 
                     'consultations.price',
                     'doctors.name as doctor_name',
                     'payments.*',
                     'payments.created_at as payment_created_at',
-                );
-
+                    DB::raw('group_concat(medications_consultation.name) as medications_name')
+                )->groupBy('payments.id');
             // $paymentsDependents = DB::table('payments')
             //     ->join('dependents', 'payments.ic', 'dependents.ic')
             //     ->join('companys', 'payments.company_id', 'companys.id')
@@ -463,7 +474,7 @@ class PaymentController extends Controller
                 'companys.name as company_name', 
                 DB::raw("sum(payments.amount) as total_amount")
             );
-
+            
             if($start_date && $end_date){
                 $payments = $payments                    
                     ->whereDate('payment_created_at', '>=', $start_date)
@@ -481,8 +492,10 @@ class PaymentController extends Controller
             $payments = $payments
                 ->where('payments.clinic_id', Auth::user()->clinic_id)
                 ->where('payments.company_id', $company_id)
-                ->orderby('payment_created_at', 'desc')
-                ->paginate(10);
+                ->orderby('payment_created_at', 'desc');
+
+            $allPayments = $payments->get();               
+            $payments = $payments->paginate(10);
             
             $outstanding_amount = $outstanding_amount         
                 ->where('payments.status', 'unsettled')
@@ -497,7 +510,7 @@ class PaymentController extends Controller
                 $company_name = $company->name;
             }
 
-            return view('clinic.outstanding_details', compact('payments', 'company_name', 'outstanding_amount'));
+            return view('clinic.outstanding_details', compact('payments', 'allPayments', 'company_name', 'outstanding_amount'));
         }
 
         if($request->get('start_date') && $request->get('end_date')){
@@ -511,20 +524,29 @@ class PaymentController extends Controller
                 ->join('companys', 'payments.company_id', 'companys.id')
                 ->join('consultations', 'payments.consultation_id', 'consultations.id')
                 ->join('doctors', 'consultations.doctor_id', 'doctors.id')
+                ->join('medications_consultation','medications_consultation.consultation_id','consultations.id')
                 ->select(
+                    'consultations.description as consultations_description',
+                    'consultations.mc_startdate',
+                    'consultations.mc_enddate',
+                    'consultations.price',
                     'employees.name as patient_name', 
                     'companys.name as company_name', 
                     'consultations.price',
                     'doctors.name as doctor_name',
                     'payments.*',
                     'payments.created_at as payment_created_at',
+                    DB::raw('group_concat(medications_consultation.name) as medications_name')
                 )
                 ->whereDate('payments.created_at', '>=', $start_date)
                 ->whereDate('payments.created_at', '<=', $end_date)
                 ->where('payments.clinic_id', Auth::user()->clinic_id)
+                ->where('payments.status', 'unsettled')
                 ->where('payments.company_id', $company_id)
-                ->orderby('payments.created_at', 'desc')
-                ->paginate(10);
+                ->orderby('payments.created_at', 'desc');
+
+            $allPayments = $payments->get();               
+            $payments = $payments->paginate(10);
 
             // $paymentsDependents = DB::table('payments')
             //     ->join('dependents', 'payments.ic', 'dependents.ic')
@@ -566,7 +588,7 @@ class PaymentController extends Controller
                 ->whereDate('payments.created_at', '<=', $end_date)                
                 ->get();
 
-            return view('clinic.outstanding_details', compact('payments', 'company_name', 'outstanding_amount'));
+            return view('clinic.outstanding_details', compact('payments', 'allPayments', 'company_name', 'outstanding_amount'));
         }
 
         if($request->get('company')){
@@ -576,18 +598,27 @@ class PaymentController extends Controller
                 ->join('companys', 'payments.company_id', 'companys.id')
                 ->join('consultations', 'payments.consultation_id', 'consultations.id')
                 ->join('doctors', 'consultations.doctor_id', 'doctors.id')
+                ->join('medications_consultation','medications_consultation.consultation_id','consultations.id')
                 ->select(
+                    'consultations.description as consultations_description',   
+                    'consultations.mc_startdate',
+                    'consultations.mc_enddate',                  
+                    'consultations.price',
                     'employees.name as patient_name', 
                     'companys.name as company_name', 
-                    'consultations.price',
                     'doctors.name as doctor_name',
                     'payments.*',
                     'payments.created_at as payment_created_at',
+                    DB::raw('group_concat(medications_consultation.name) as medications_name')
                 )
                 ->where('payments.company_id', $company_id)
                 ->where('payments.clinic_id', Auth::user()->clinic_id)
-                ->orderBy('payment_created_at', 'desc')
-                ->paginate(10);
+                ->where('payments.status', 'unsettled')
+                ->groupBy('consultations.id')
+                ->orderBy('payment_created_at', 'desc');
+
+                $allPayments = $payments->get();               
+                $payments = $payments->paginate(10);
             // $paymentsDependents = DB::table('payments')
             //     ->join('dependents', 'payments.ic', 'dependents.ic')
             //     ->join('companys', 'payments.company_id', 'companys.id')
@@ -621,7 +652,7 @@ class PaymentController extends Controller
                 ->where('clinic_id', Auth::user()->clinic_id)
                 ->get();
                 
-            return view('clinic.outstanding_details', compact('payments', 'company_name', 'outstanding_amount'));
+            return view('clinic.outstanding_details', compact('payments','allPayments', 'company_name', 'outstanding_amount'));
         }
     }
 
@@ -657,6 +688,14 @@ class PaymentController extends Controller
         if($remaining_amount < 0.00){
             return back()->withErrors('Amount paid should not be bigger than the outstanding amount.');
         }
+    }
+
+    public function processing(Request $request, $payment_id){
+        $payment = Payment::find($payment_id);
+        $payment->status = 'processing';
+        $payment->save();
+
+        return back()->with('success','Payment status has been changed to Proccessing.');
     }
 
     public function monthly_settle(Request $request){

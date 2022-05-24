@@ -26,25 +26,14 @@ class UserController extends Controller
 
     public function updateClinicProfile(Request $request, $clinic_id){
         $request->validate([
-            'name' => 'required',
             'contact' => 'required',
             'address' => 'required',
-            'email' => 'required',
         ]);
 
         $profile = Clinic::findorfail($clinic_id);
 
-        $profile->name = $request->input('name');
         $profile->contact = $request->input('contact');
         $profile->address = $request->input('address');
-        $profile->email = $request->input('email');
-
-        $update_user = DB::table('users') 
-            ->where('clinic_id', $clinic_id)
-            ->update([
-                'name' => $request->input('name'),
-                'email' => $request->input('email')
-            ]);
 
         $profile->save();
 

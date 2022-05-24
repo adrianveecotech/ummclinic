@@ -284,6 +284,11 @@ class EmployeeController extends Controller
         $employees->status = $request->input('status');
         $employees->monthly_limit = $request->input('monthly_limit');
         $employees->overall_limit = $request->input('overall_limit');
+        $employees->monthly_limit_start_date = $request->input('monthly_limit_start_date');
+        $employees->monthly_limit_end_date = $request->input('monthly_limit_end_date');
+        $employees->overall_limit_start_date = $request->input('overall_limit_start_date');
+        $employees->overall_limit_end_date = $request->input('overall_limit_end_date');
+        $employees->daily_limit = $request->input('daily_limit');
         $employees->date_joined = $request->input('date_joined');
         $employees->department = $request->input('department');
 

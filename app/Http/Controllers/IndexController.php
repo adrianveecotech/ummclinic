@@ -131,7 +131,7 @@ class IndexController extends Controller
                 'consultations.*',
                 'doctors.name as doctor_name',
                 'payments.status as payment_status',
-                'e1.company_employee_id as company_employee_id_new'
+                'employees.company_employee_id as company_employee_id_new'
                 )
             ->where('consultations.company_id', Auth::user()->company_id)
             ->orderBy('consultations.created_at', 'desc');

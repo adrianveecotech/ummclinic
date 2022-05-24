@@ -35,8 +35,10 @@
               </form>
           </div>
         <div class="float-right">
+          <button type="button" class="btn btn-info mb-3 mr-1" id="btnExport" onclick="exportReport();">Export</a>
           <!-- <button type="button" class="btn btn-info text-white mb-3" data-toggle="modal" data-target="#billing_modal">Multiple Billing</button> -->
           <button type="button" class="btn btn-info text-white mb-3" data-toggle="modal" data-target="#filter_payment_modal"><i class="fa fa-filter" aria-hidden="true"></i></button>
+
         </div>
         <table class="table table-bordered table-hover bg-white" id="payment_table">
           <thead>
@@ -47,7 +49,6 @@
               <td class="text-center" colspan="7"><strong>Total Outstanding: RM{{ number_format((float)($outstanding_amount[0]->total_amount), 2) }}</strong></td>
             </tr>
             <tr>
-              <th scope="col" style="width:5%" class="text-center">#</th>
               <th scope="col">Patient Name</th>
               <th scope="col" style="width: 15%">IC</th>
               <th scope="col" style="width: 10%">Date</th>
@@ -59,7 +60,6 @@
           <tbody>
             @foreach($payments as $index => $payment)
               <tr>
-                  <th scope="row" class="text-center">{{ $index+1 }}</th>
                   <td>{{ $payment->patient_name }}</td>
                   <td>{{ $payment->ic }}</td>
                   <td>{{ \Carbon\Carbon::parse($payment->created_at)->format('d-m-Y') }}</td>
@@ -102,7 +102,17 @@
                           <td class="w-25">{{ $payment->doctor_name }}</td>
                           <th class="table-active w-25">Consultation Price</th>
                           <td class="w-25">RM {{ number_format((float)($payment->price), 2) }}</td>
-                        </tr>                              
+                        </tr> 
+                        <tr>
+                          <th class="table-active w-25">Diagnosis</th>
+                          <td class="w-25">{{ $payment->consultations_description }}</td>
+                          <th class="table-active w-25">MC</th>
+                          <td class="w-25">{{ $payment->mc_startdate }} - {{ $payment->mc_enddate }}</td>
+                        </tr>   
+                        <tr>
+                          <th class="table-active">Medications</th>
+                          <td colspan="3">{{ $payment->medications_name }}</td>
+                        </tr>                                        
                       </tbody>
                     </table>
                   </div>
@@ -245,6 +255,7 @@
                         <option selected></option>
                           <option value="settled">Settled</option>
                           <option value="unsettled">Unsettled</option>
+                          <option value="processing">Processing</option>
                       </select>
                   </div>
                   <div class="modal-footer">
@@ -260,4 +271,29 @@
       </div>
     </div>
 </div>
+@endsection
+
+@section('scripts')
+<script type="text/javascript">
+    var allPayments = <?php echo $allPayments ?>;
+
+    function exportReport(){
+        let csvContent = "data:text/csv;charset=utf-8,";
+        csvContent += "Payment History \r\n";
+
+        csvContent += "Patient Name, IC, Created At, Amount, Doctor Name, Diagnosis, MC, Medications \r\n";
+        allPayments.forEach(payment => {
+          if(payment.mc_startdate == null)
+            csvContent += payment.patient_name + "," +  payment.ic + "," + payment.created_at + "," + payment.amount.toFixed(2) + "," + payment.doctor_name + "," + payment.consultations_description + "," + '-' + "," + payment.medications_name + "\r\n";
+          else
+            csvContent += payment.patient_name + "," +  payment.ic + "," + payment.created_at + "," + payment.amount.toFixed(2) + "," + payment.doctor_name + "," + payment.consultations_description + "," + payment.mc_startdate + '-' + payment.mc_enddate + "," + payment.medications_name + "\r\n";
+        });
+        var encodedUri = encodeURI(csvContent);
+        var link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "payment_history.csv");
+        document.body.appendChild(link);
+        link.click()
+      }
+</script>
 @endsection
