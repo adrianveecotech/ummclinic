@@ -201,17 +201,19 @@ class ConsultationController extends Controller
                     $daily_limit_exceeded = 'Limit not set';
                 }
                 $dependents = $employees;
+
                 $consultation_details = DB::table('consultations')
                         ->join('clinics', 'consultations.clinic_id', 'clinics.id')
                         ->join('doctors', 'consultations.doctor_id', 'doctors.id')
                         ->join('medications_consultation', 'medications_consultation.consultation_id', 'consultations.id')
-                        ->select('doctors.name as doctor_name', 'consultations.*','clinics.name as clinic_name','consultations.clinic_admin as clinic_admin',
+                        ->select('doctors.name as doctor_name', 'consultations.*','clinics.name as clinic_name',
                         DB::raw('group_concat(medications_consultation.name) as medications_name')
                     )
                         ->where('consultations.ic', $query)
                         ->orderBy('consultations.created_at', 'desc')
                         ->groupBy('consultations.id')
                         ->paginate(5);
+                        
                 return view('clinic.search_dependent', compact('dependents','status', 'consultations', 'consultation_details','number_of_mc','overall_limit_exceeded','employee_of_dependent','overall_spent','dependents','daily_limit_exceeded','monthly_limit_exceeded','monthly_spent','daily_spent'));
             }else{
                 $status = $employees->status;
